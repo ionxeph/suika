@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 use rand::Rng;
 
-pub const SCREEN_WIDTH: f32 = 300.0;
-pub const SCREEN_HEIGHT: f32 = 400.0;
+pub const SCREEN_WIDTH: f32 = 360.0;
+pub const SCREEN_HEIGHT: f32 = 576.0;
 
 fn main() {
     App::new()
