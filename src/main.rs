@@ -1,49 +1,26 @@
-use bevy::{prelude::*, utils::HashSet};
-use rand::{prelude::SliceRandom, Rng};
+use bevy::prelude::*;
+use rand::Rng;
+
+pub const SCREEN_WIDTH: f32 = 300.0;
+pub const SCREEN_HEIGHT: f32 = 400.0;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
-        .init_resource::<SelectionState>()
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(Window {
+                title: "Suika".to_string(),
+                resolution: (SCREEN_WIDTH, SCREEN_HEIGHT).into(),
+                ..default()
+            }),
+            ..default()
+        }))
         .add_systems(Startup, (setup_contributor_selection, setup))
-        .add_systems(
-            Update,
-            (
-                velocity_system,
-                move_system,
-                collision_system,
-                select_system,
-            ),
-        )
+        .add_systems(Update, (velocity_system, move_system, collision_system))
         .run();
 }
 
-#[derive(Resource)]
-struct ContributorSelection {
-    order: Vec<Entity>,
-    idx: usize,
-}
-
-#[derive(Resource)]
-struct SelectionState {
-    timer: Timer,
-}
-
-impl Default for SelectionState {
-    fn default() -> Self {
-        Self {
-            timer: Timer::from_seconds(SHOWCASE_TIMER_SECS, TimerMode::Repeating),
-        }
-    }
-}
-
 #[derive(Component)]
-struct ContributorDisplay;
-
-#[derive(Component)]
-struct Contributor {
-    hue: f32,
-}
+struct Fruit;
 
 #[derive(Component)]
 struct Velocity {
@@ -54,121 +31,42 @@ struct Velocity {
 const GRAVITY: f32 = 9.821 * 100.0;
 const SPRITE_SIZE: f32 = 75.0;
 
-const SATURATION_DESELECTED: f32 = 0.3;
-const LIGHTNESS_DESELECTED: f32 = 0.2;
-const SATURATION_SELECTED: f32 = 0.9;
-const LIGHTNESS_SELECTED: f32 = 0.7;
-const ALPHA: f32 = 0.92;
-
-const SHOWCASE_TIMER_SECS: f32 = 3.0;
-
 fn setup_contributor_selection(mut commands: Commands, asset_server: Res<AssetServer>) {
     let texture_handle = asset_server.load("yagoo.png");
-
-    let mut contributor_selection = ContributorSelection {
-        order: Vec::with_capacity(4),
-        idx: 0,
-    };
-
     let mut rng = rand::thread_rng();
 
     for _ in 0..=3 {
         let pos = (rng.gen_range(-400.0..400.0), rng.gen_range(0.0..400.0));
         let dir = rng.gen_range(-1.0..1.0);
         let velocity = Vec3::new(dir * 500.0, 0.0, 0.0);
-        let hue = rng.gen_range(0.0..=360.0);
 
         // some sprites should be flipped
         let flipped = rng.gen_bool(0.5);
 
         let transform = Transform::from_xyz(pos.0, pos.1, 0.0);
 
-        let entity = commands
-            .spawn((
-                Contributor { hue },
-                Velocity {
-                    translation: velocity,
-                    rotation: -dir * 5.0,
-                },
-                SpriteBundle {
-                    sprite: Sprite {
-                        custom_size: Some(Vec2::new(1.0, 1.0) * SPRITE_SIZE),
-                        color: Color::hsla(hue, SATURATION_DESELECTED, LIGHTNESS_DESELECTED, ALPHA),
-                        flip_x: flipped,
-                        ..default()
-                    },
-                    texture: texture_handle.clone(),
-                    transform,
+        commands.spawn((
+            Fruit,
+            Velocity {
+                translation: velocity,
+                rotation: -dir * 5.0,
+            },
+            SpriteBundle {
+                sprite: Sprite {
+                    custom_size: Some(Vec2::new(1.0, 1.0) * SPRITE_SIZE),
+                    flip_x: flipped,
                     ..default()
                 },
-            ))
-            .id();
-
-        contributor_selection.order.push(entity);
+                texture: texture_handle.clone(),
+                transform,
+                ..default()
+            },
+        ));
     }
-
-    contributor_selection.order.shuffle(&mut rng);
-
-    commands.insert_resource(contributor_selection);
 }
 
 fn setup(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
-}
-
-/// Finds the next contributor to display and selects the entity
-fn select_system(
-    mut timer: ResMut<SelectionState>,
-    mut contributor_selection: ResMut<ContributorSelection>,
-    mut query: Query<(&Contributor, &mut Sprite, &mut Transform)>,
-    time: Res<Time>,
-) {
-    if !timer.timer.tick(time.delta()).just_finished() {
-        return;
-    }
-
-    let entity = contributor_selection.order[contributor_selection.idx];
-    if let Ok((contributor, mut sprite, mut transform)) = query.get_mut(entity) {
-        deselect(&mut sprite, contributor, &mut transform);
-    }
-
-    if (contributor_selection.idx + 1) < contributor_selection.order.len() {
-        contributor_selection.idx += 1;
-    } else {
-        contributor_selection.idx = 0;
-    }
-
-    let entity = contributor_selection.order[contributor_selection.idx];
-
-    if let Ok((contributor, mut sprite, mut transform)) = query.get_mut(entity) {
-        select(&mut sprite, contributor, &mut transform);
-    }
-}
-
-/// Change the tint color to the "selected" color, bring the object to the front
-/// and display the name.
-fn select(sprite: &mut Sprite, contributor: &Contributor, transform: &mut Transform) {
-    sprite.color = Color::hsla(
-        contributor.hue,
-        SATURATION_SELECTED,
-        LIGHTNESS_SELECTED,
-        ALPHA,
-    );
-
-    transform.translation.z = 100.0;
-}
-
-/// Change the modulate color to the "deselected" color and push
-/// the object to the back.
-fn deselect(sprite: &mut Sprite, contributor: &Contributor, transform: &mut Transform) {
-    sprite.color = Color::hsla(
-        contributor.hue,
-        SATURATION_DESELECTED,
-        LIGHTNESS_DESELECTED,
-        ALPHA,
-    );
-
-    transform.translation.z = 0.0;
 }
 
 /// Applies gravity to all entities with velocity
@@ -187,7 +85,7 @@ fn velocity_system(time: Res<Time>, mut velocity_query: Query<&mut Velocity>) {
 /// force.
 fn collision_system(
     windows: Query<&Window>,
-    mut query: Query<(&mut Velocity, &mut Transform), With<Contributor>>,
+    mut query: Query<(&mut Velocity, &mut Transform), With<Fruit>>,
 ) {
     let window = windows.single();
 
