@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 bevy = "0.11.3"
+bevy_rapier2d = { version = "0.22.0", features = [ "wasm-bindgen" ] }
 rand = "0.8.5"
 
 # Enable a small amount of optimization in debug mode

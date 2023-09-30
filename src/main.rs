@@ -1,8 +1,8 @@
-use bevy::prelude::*;
-use rand::Rng;
+use bevy::{prelude::*, window::PrimaryWindow};
+use bevy_rapier2d::prelude::*;
 
-pub const SCREEN_WIDTH: f32 = 360.0;
-pub const SCREEN_HEIGHT: f32 = 576.0;
+pub const SCREEN_WIDTH: f32 = 400.0;
+pub const SCREEN_HEIGHT: f32 = 600.0;
 
 fn main() {
     App::new()
@@ -14,132 +14,82 @@ fn main() {
             }),
             ..default()
         }))
-        .add_systems(Startup, (setup_contributor_selection, setup))
-        .add_systems(Update, (velocity_system, move_system, collision_system))
+        .add_plugins((
+            RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0),
+            RapierDebugRenderPlugin::default(),
+        ))
+        .add_systems(Startup, (setup_container, setup_camera))
+        .add_systems(Update, mouse_click_system)
         .run();
 }
 
-#[derive(Component)]
-struct Fruit;
-
-#[derive(Component)]
-struct Velocity {
-    translation: Vec3,
-    rotation: f32,
-}
-
-const GRAVITY: f32 = 9.821 * 100.0;
 const SPRITE_SIZE: f32 = 75.0;
 
-fn setup_contributor_selection(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let texture_handle = asset_server.load("yagoo.png");
-    let mut rng = rand::thread_rng();
+/// Used to help identify our main camera
+#[derive(Component)]
+struct MainCamera;
 
-    for _ in 0..=3 {
-        let pos = (rng.gen_range(-400.0..400.0), rng.gen_range(0.0..400.0));
-        let dir = rng.gen_range(-1.0..1.0);
-        let velocity = Vec3::new(dir * 500.0, 0.0, 0.0);
+fn setup_container(mut commands: Commands) {
+    /* Create the container. */
+    commands
+        .spawn(Collider::cuboid(150.0, 10.0))
+        .insert(TransformBundle::from(Transform::from_xyz(0.0, -275.0, 0.0)));
+    commands
+        .spawn(Collider::cuboid(10.0, 275.0))
+        .insert(TransformBundle::from(Transform::from_xyz(
+            160.0, -10.0, 0.0,
+        )));
+    commands
+        .spawn(Collider::cuboid(10.0, 275.0))
+        .insert(TransformBundle::from(Transform::from_xyz(
+            -160.0, -10.0, 0.0,
+        )));
+}
 
-        // some sprites should be flipped
-        let flipped = rng.gen_bool(0.5);
+fn setup_camera(mut commands: Commands) {
+    commands.spawn((Camera2dBundle::default(), MainCamera));
+}
 
-        let transform = Transform::from_xyz(pos.0, pos.1, 0.0);
+fn mouse_click_system(
+    commands: Commands,
+    mouse_button_input: Res<Input<MouseButton>>,
+    asset_server: Res<AssetServer>,
+    q_windows: Query<&Window, With<PrimaryWindow>>,
+    camera_q: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
+) {
+    // get the camera info and transform
+    // assuming there is exactly one main camera entity, so query::single() is OK
+    let (camera, camera_transform) = camera_q.single();
 
-        commands.spawn((
-            Fruit,
-            Velocity {
-                translation: velocity,
-                rotation: -dir * 5.0,
-            },
+    if mouse_button_input.just_pressed(MouseButton::Left) {
+        if let Some(world_position) = q_windows
+            .single()
+            .cursor_position()
+            .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor))
+            .map(|ray| ray.origin.truncate())
+        {
+            spawn_yagoo(commands, asset_server, world_position[0]);
+        }
+    }
+}
+
+fn spawn_yagoo(mut commands: Commands, asset_server: Res<AssetServer>, x: f32) {
+    let texture_handle = asset_server.load("trimmed-yagoo.png");
+    commands
+        .spawn((
+            RigidBody::Dynamic,
             SpriteBundle {
                 sprite: Sprite {
                     custom_size: Some(Vec2::new(1.0, 1.0) * SPRITE_SIZE),
-                    flip_x: flipped,
                     ..default()
                 },
                 texture: texture_handle.clone(),
-                transform,
                 ..default()
             },
-        ));
-    }
-}
-
-fn setup(mut commands: Commands) {
-    commands.spawn(Camera2dBundle::default());
-}
-
-/// Applies gravity to all entities with velocity
-fn velocity_system(time: Res<Time>, mut velocity_query: Query<&mut Velocity>) {
-    let delta = time.delta_seconds();
-
-    for mut velocity in &mut velocity_query {
-        velocity.translation.y -= GRAVITY * delta;
-    }
-}
-
-/// Checks for collisions of contributor-birds.
-///
-/// On collision with left-or-right wall it resets the horizontal
-/// velocity. On collision with the ground it applies an upwards
-/// force.
-fn collision_system(
-    windows: Query<&Window>,
-    mut query: Query<(&mut Velocity, &mut Transform), With<Fruit>>,
-) {
-    let window = windows.single();
-
-    let ceiling = window.height() / 2.;
-    let ground = -window.height() / 2.;
-
-    let wall_left = -window.width() / 2.;
-    let wall_right = window.width() / 2.;
-
-    // The maximum height the birbs should try to reach is one birb below the top of the window.
-    let max_bounce_height = (window.height() - SPRITE_SIZE * 2.0).max(0.0);
-
-    let mut rng = rand::thread_rng();
-
-    for (mut velocity, mut transform) in &mut query {
-        let left = transform.translation.x - SPRITE_SIZE / 2.0;
-        let right = transform.translation.x + SPRITE_SIZE / 2.0;
-        let top = transform.translation.y + SPRITE_SIZE / 2.0;
-        let bottom = transform.translation.y - SPRITE_SIZE / 2.0;
-
-        // clamp the translation to not go out of the bounds
-        if bottom < ground {
-            transform.translation.y = ground + SPRITE_SIZE / 2.0;
-
-            // How high this birb will bounce.
-            let bounce_height = rng.gen_range((max_bounce_height * 0.4)..=max_bounce_height);
-
-            // Apply the velocity that would bounce the birb up to bounce_height.
-            velocity.translation.y = (bounce_height * GRAVITY * 2.).sqrt();
-        }
-        if top > ceiling {
-            transform.translation.y = ceiling - SPRITE_SIZE / 2.0;
-            velocity.translation.y *= -1.0;
-        }
-        // on side walls flip the horizontal velocity
-        if left < wall_left {
-            transform.translation.x = wall_left + SPRITE_SIZE / 2.0;
-            velocity.translation.x *= -1.0;
-            velocity.rotation *= -1.0;
-        }
-        if right > wall_right {
-            transform.translation.x = wall_right - SPRITE_SIZE / 2.0;
-            velocity.translation.x *= -1.0;
-            velocity.rotation *= -1.0;
-        }
-    }
-}
-
-/// Apply velocity to positions and rotations.
-fn move_system(time: Res<Time>, mut query: Query<(&Velocity, &mut Transform)>) {
-    let delta = time.delta_seconds();
-
-    for (velocity, mut transform) in &mut query {
-        transform.translation += delta * velocity.translation;
-        transform.rotate_z(velocity.rotation * delta);
-    }
+        ))
+        .insert(Collider::ball(SPRITE_SIZE / 2.))
+        .insert(GravityScale(2.5))
+        .insert(ColliderMassProperties::Mass(3.0))
+        .insert(Restitution::coefficient(0.7))
+        .insert(TransformBundle::from(Transform::from_xyz(x, 250.0, 0.0)));
 }
