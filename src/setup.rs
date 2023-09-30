@@ -6,13 +6,16 @@ pub struct SetupPlugin;
 
 impl Plugin for SetupPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, (setup_container, setup_camera));
+        app.add_systems(Startup, (setup_container, setup_camera, setup_preview));
     }
 }
 
 /// Used to help identify our main camera
 #[derive(Component)]
 pub struct MainCamera;
+
+#[derive(Component)]
+pub struct Preview;
 
 fn setup_container(mut commands: Commands) {
     /* Create the container. */
@@ -33,6 +36,22 @@ fn setup_container(mut commands: Commands) {
             -110.0,
             0.0,
         )));
+}
+
+fn setup_preview(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let texture_handle = asset_server.load("trimmed-yagoo.png");
+    commands.spawn((
+        Preview,
+        SpriteBundle {
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(1.0, 1.0) * 26.0),
+                ..default()
+            },
+            texture: texture_handle.clone(),
+            transform: Transform::from_xyz(0.0, 0.0, 0.0),
+            ..default()
+        },
+    ));
 }
 
 fn setup_camera(mut commands: Commands) {

@@ -4,6 +4,11 @@ use rand::prelude::*;
 
 use crate::setup::{MainCamera, CONTAINER_HALF_WIDTH};
 
+const CLICK_DELAY: f32 = 0.8;
+
+const SIZES: [f32; 11] = [
+    26.0, 40.0, 54.0, 60.0, 77.0, 92.0, 97.0, 129.0, 154.0, 174.0, 204.0,
+];
 pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
@@ -12,9 +17,26 @@ impl Plugin for GamePlugin {
     }
 }
 
-const SIZES: [f32; 11] = [
-    26.0, 40.0, 54.0, 60.0, 77.0, 92.0, 97.0, 129.0, 154.0, 174.0, 204.0,
-];
+#[derive(Resource)]
+pub struct SpawnTime {
+    // prevent spawning in quick succession
+    timer: Timer,
+}
+
+impl Default for SpawnTime {
+    fn default() -> Self {
+        Self {
+            // default to 0 seconds as first click doesn't need buffer
+            timer: Timer::from_seconds(0.0, TimerMode::Once),
+        }
+    }
+}
+
+impl SpawnTime {
+    fn start_new_timer(&mut self) {
+        self.timer = Timer::from_seconds(CLICK_DELAY, TimerMode::Once);
+    }
+}
 
 fn mouse_click_system(
     commands: Commands,
@@ -22,13 +44,18 @@ fn mouse_click_system(
     asset_server: Res<AssetServer>,
     q_windows: Query<&Window, With<PrimaryWindow>>,
     camera_q: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
+    mut click_buffer: ResMut<SpawnTime>,
+    time: Res<Time>,
 ) {
+    // TODO: add handler for preview that changes its position based on mouse position, should do this regardless of timer
+    click_buffer.timer.tick(time.delta());
+    if !click_buffer.timer.finished() {
+        return;
+    }
     // get the camera info and transform
     // assuming there is exactly one main camera entity, so query::single() is OK
     let (camera, camera_transform) = camera_q.single();
 
-    // TODO: add handler for preview that changes its position based on mouse position
-    // the preview shouldn't have any physics properties, and should be implemented in setup
     if mouse_button_input.just_pressed(MouseButton::Left) {
         if let Some(world_position) = q_windows
             .single()
@@ -36,6 +63,7 @@ fn mouse_click_system(
             .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor))
             .map(|ray| ray.origin.truncate())
         {
+            click_buffer.start_new_timer();
             spawn_yagoo(commands, asset_server, world_position[0]);
         }
     }

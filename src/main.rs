@@ -5,7 +5,7 @@ mod setup;
 use setup::SetupPlugin;
 
 mod game;
-use game::GamePlugin;
+use game::{GamePlugin, SpawnTime};
 
 const SCREEN_WIDTH: f32 = 400.0;
 const SCREEN_HEIGHT: f32 = 800.0;
@@ -20,6 +20,7 @@ fn main() {
             }),
             ..default()
         }))
+        .init_resource::<SpawnTime>()
         .add_plugins((
             RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0),
             RapierDebugRenderPlugin::default(),
