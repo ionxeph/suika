@@ -5,7 +5,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .init_resource::<SelectionState>()
-        .add_systems(Startup, setup_contributor_selection)
+        .add_systems(Startup, (setup_contributor_selection, setup))
         .add_systems(
             Update,
             (
@@ -63,16 +63,16 @@ const ALPHA: f32 = 0.92;
 const SHOWCASE_TIMER_SECS: f32 = 3.0;
 
 fn setup_contributor_selection(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let contribs = contributors();
+    let texture_handle = asset_server.load("yagoo.png");
 
     let mut contributor_selection = ContributorSelection {
-        order: Vec::with_capacity(contribs.len()),
+        order: Vec::with_capacity(4),
         idx: 0,
     };
 
     let mut rng = rand::thread_rng();
 
-    for _ in contribs {
+    for _ in 0..=3 {
         let pos = (rng.gen_range(-400.0..400.0), rng.gen_range(0.0..400.0));
         let dir = rng.gen_range(-1.0..1.0);
         let velocity = Vec3::new(dir * 500.0, 0.0, 0.0);
@@ -97,7 +97,7 @@ fn setup_contributor_selection(mut commands: Commands, asset_server: Res<AssetSe
                         flip_x: flipped,
                         ..default()
                     },
-                    texture: asset_server.load("yagoo.png"),
+                    texture: texture_handle.clone(),
                     transform,
                     ..default()
                 },
@@ -108,9 +108,12 @@ fn setup_contributor_selection(mut commands: Commands, asset_server: Res<AssetSe
     }
 
     contributor_selection.order.shuffle(&mut rng);
-    println!("{}", contributor_selection.order.len());
 
     commands.insert_resource(contributor_selection);
+}
+
+fn setup(mut commands: Commands) {
+    commands.spawn(Camera2dBundle::default());
 }
 
 /// Finds the next contributor to display and selects the entity
@@ -241,13 +244,4 @@ fn move_system(time: Res<Time>, mut query: Query<(&Velocity, &mut Transform)>) {
         transform.translation += delta * velocity.translation;
         transform.rotate_z(velocity.rotation * delta);
     }
-}
-
-fn contributors() -> HashSet<String> {
-    let mut contributors = HashSet::new();
-    contributors.insert("A Dance With Dragons".to_string());
-    contributors.insert("To Kill a Mockingbird".to_string());
-    contributors.insert("The Odyssey".to_string());
-    contributors.insert("The Great Gatsby".to_string());
-    contributors
 }
