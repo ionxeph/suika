@@ -71,13 +71,14 @@ fn mouse_click_system(
 
 fn spawn_yagoo(mut commands: Commands, asset_server: Res<AssetServer>, mouse_x: f32) {
     let texture_handle = asset_server.load("trimmed-yagoo.png");
-    let num = rand::thread_rng().gen_range(0..11);
+    let num = rand::thread_rng().gen_range(0..5);
     let size = SIZES[num];
 
     // make sure spawning position is in bounds
+    // adding one pixel on either edge to prevent collision against wall on drop
     let pos = match mouse_x {
-        x if x < 0.0 => x.max(CONTAINER_HALF_WIDTH * -1.0 + size / 2.0),
-        x if x > 0.0 => x.min(CONTAINER_HALF_WIDTH - size / 2.0),
+        x if x < 0.0 => x.max((CONTAINER_HALF_WIDTH * -1.0 + size / 2.0) + 1.0),
+        x if x > 0.0 => x.min((CONTAINER_HALF_WIDTH - size / 2.0) - 1.0),
         _ => mouse_x,
     };
 
@@ -95,7 +96,7 @@ fn spawn_yagoo(mut commands: Commands, asset_server: Res<AssetServer>, mouse_x: 
         ))
         .insert(Collider::ball(size / 2.))
         .insert(GravityScale(2.5))
-        .insert(ColliderMassProperties::Mass(3.0))
+        .insert(ColliderMassProperties::Mass(3.0)) // TODO: configure mass according to size
         .insert(Restitution::coefficient(0.3))
         .insert(TransformBundle::from(Transform::from_xyz(pos, 250.0, 0.0)));
 }
