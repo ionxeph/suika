@@ -27,6 +27,8 @@ fn mouse_click_system(
     // assuming there is exactly one main camera entity, so query::single() is OK
     let (camera, camera_transform) = camera_q.single();
 
+    // TODO: add handler for preview that changes its position based on mouse position
+    // the preview shouldn't have any physics properties, and should be implemented in setup
     if mouse_button_input.just_pressed(MouseButton::Left) {
         if let Some(world_position) = q_windows
             .single()
