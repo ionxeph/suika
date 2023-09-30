@@ -9,3 +9,5 @@
 308×308
 308×309
 408×408
+
+cargo run --target wasm32-unknown-unknown
