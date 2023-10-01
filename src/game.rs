@@ -5,8 +5,8 @@ use crate::resources::{Fruit, NextGenerator, SpawnTime};
 use crate::setup::{MainCamera, NextPreview, Preview};
 
 use crate::constants::{
-    CONTAINER_HEIGHT, CONTAINER_WIDTH, GRAVITY, MASS, MAX_SPEED, MAX_X_VELOCITY_BEFORE_CLAMP,
-    MAX_Y_VELOCITY_BEFORE_CLAMP, RESTITUATION,
+    CONTAINER_THICKNESS, CONTAINER_WIDTH, GRAVITY, MASS, MAX_SPEED, MAX_X_VELOCITY_BEFORE_CLAMP,
+    MAX_Y_VELOCITY_BEFORE_CLAMP, RESTITUATION, SPAWN_HEIGHT,
 };
 
 pub struct GamePlugin;
@@ -20,8 +20,19 @@ impl Plugin for GamePlugin {
                 update_preview_system,
                 collision_system,
                 clamp_upward_velocity,
+                modify_body_translation,
             ),
         );
+    }
+}
+
+fn modify_body_translation(positions: Query<&Transform, With<Fruit>>) {
+    for position in positions.iter() {
+        if position.translation.x > CONTAINER_WIDTH / 2.0 + CONTAINER_THICKNESS
+            || position.translation.x < -CONTAINER_WIDTH / 2.0 - CONTAINER_THICKNESS
+        {
+            // TODO: implement game over logic
+        }
     }
 }
 
@@ -94,7 +105,7 @@ fn mouse_click_system(
             commands.spawn(create_fruit_bundle(
                 texture_handle,
                 world_position[0],
-                CONTAINER_HEIGHT / 2.0,
+                SPAWN_HEIGHT,
                 next_fruit,
             ));
         }

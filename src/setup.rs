@@ -4,7 +4,7 @@ use bevy_rapier2d::prelude::*;
 use crate::{
     constants::{
         CONTAINER_BASE_OFFSET, CONTAINER_HEIGHT, CONTAINER_THICKNESS, CONTAINER_WIDTH, KNOWN_TYPES,
-        NEXT_PREVIEW_LABEL_SIZE, NEXT_PREVIEW_OFFSET, SCREEN_HEIGHT, SCREEN_WIDTH,
+        NEXT_PREVIEW_LABEL_SIZE, NEXT_PREVIEW_OFFSET, SCREEN_HEIGHT, SCREEN_WIDTH, SPAWN_HEIGHT,
     },
     resources::NextGenerator,
 };
@@ -124,7 +124,7 @@ fn setup_preview(
                 ..default()
             },
             texture: texture_handle,
-            transform: Transform::from_xyz(0.0, CONTAINER_HEIGHT / 2.0, 0.0),
+            transform: Transform::from_xyz(0.0, SPAWN_HEIGHT, 0.0),
             ..default()
         },
     ));
