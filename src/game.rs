@@ -1,12 +1,10 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_rapier2d::prelude::*;
-use rand::prelude::*;
 
-use crate::resources::SpawnTime;
+use crate::resources::{NextGenerator, SpawnTime};
 use crate::setup::{MainCamera, Preview, CONTAINER_HALF_WIDTH};
-const SIZES: [f32; 11] = [
-    26.0, 40.0, 54.0, 60.0, 77.0, 92.0, 97.0, 129.0, 154.0, 174.0, 204.0,
-];
+
+const GRAVITY: f32 = 3.0;
 pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
@@ -16,22 +14,25 @@ impl Plugin for GamePlugin {
 }
 
 fn mouse_move_system(
-    commands: Commands,
-    mouse_button_input: Res<Input<MouseButton>>,
-    asset_server: Res<AssetServer>,
+    // commands: Commands,
+    // mouse_button_input: Res<Input<MouseButton>>,
+    // asset_server: Res<AssetServer>,
     q_windows: Query<&Window, With<PrimaryWindow>>,
     camera_q: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
-    mut query: Query<(&Preview, &mut Transform)>,
+    mut query: Query<(&Preview, &mut Sprite, &mut Transform)>,
+    next_generator: Res<NextGenerator>,
 ) {
     let mouse_pos = get_mouse_pos(q_windows, camera_q);
 
     if let Some(world_position) = mouse_pos {
-        let pos = mouse_x_in_bounds(world_position[0], 26.0); // TODO: change this size
-        let (_, mut transform) = query.single_mut();
+        let pos = mouse_x_in_bounds(world_position[0], next_generator.current_fruit.size); // TODO: change this size
+        let (_, mut sprite, mut transform) = query.single_mut();
         transform.translation.x = pos;
+        sprite.custom_size = Some(Vec2::new(1.0, 1.0) * next_generator.current_fruit.size)
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn mouse_click_system(
     commands: Commands,
     mouse_button_input: Res<Input<MouseButton>>,
@@ -40,6 +41,7 @@ fn mouse_click_system(
     camera_q: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
     mut click_buffer: ResMut<SpawnTime>,
     time: Res<Time>,
+    mut next_generator: ResMut<NextGenerator>,
 ) {
     click_buffer.timer.tick(time.delta());
     if !click_buffer.timer.finished() {
@@ -50,7 +52,9 @@ fn mouse_click_system(
     if mouse_button_input.just_pressed(MouseButton::Left) {
         if let Some(world_position) = mouse_pos {
             click_buffer.start_new_timer();
-            spawn_yagoo(commands, asset_server, world_position[0]);
+            let size = next_generator.current_fruit.size;
+            next_generator.next(); // after spawning current, go to next
+            spawn_yagoo(commands, asset_server, world_position[0], size);
         }
     }
 }
@@ -69,10 +73,8 @@ fn get_mouse_pos(
         .map(|ray| ray.origin.truncate())
 }
 
-fn spawn_yagoo(mut commands: Commands, asset_server: Res<AssetServer>, mouse_x: f32) {
+fn spawn_yagoo(mut commands: Commands, asset_server: Res<AssetServer>, mouse_x: f32, size: f32) {
     let texture_handle = asset_server.load("trimmed-yagoo.png");
-    let num = rand::thread_rng().gen_range(0..5);
-    let size = SIZES[num];
 
     // make sure spawning position is in bounds
     // adding one pixel on either edge to prevent collision against wall on drop
@@ -91,8 +93,8 @@ fn spawn_yagoo(mut commands: Commands, asset_server: Res<AssetServer>, mouse_x: 
             },
         ))
         .insert(Collider::ball(size / 2.))
-        .insert(GravityScale(2.5))
-        .insert(ColliderMassProperties::Mass(3.0)) // TODO: configure mass according to size
+        .insert(GravityScale(3.0))
+        .insert(ColliderMassProperties::Mass(GRAVITY)) // TODO: configure mass according to size
         .insert(Restitution::coefficient(0.3))
         .insert(TransformBundle::from(Transform::from_xyz(pos, 250.0, 0.0)));
 }

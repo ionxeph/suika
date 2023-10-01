@@ -8,7 +8,7 @@ mod game;
 use game::GamePlugin;
 
 mod resources;
-use resources::SpawnTime;
+use resources::{NextGenerator, SpawnTime};
 
 const SCREEN_WIDTH: f32 = 400.0;
 const SCREEN_HEIGHT: f32 = 800.0;
@@ -24,6 +24,7 @@ fn main() {
             ..default()
         }))
         .init_resource::<SpawnTime>()
+        .init_resource::<NextGenerator>()
         .add_plugins((
             RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0),
             RapierDebugRenderPlugin::default(),

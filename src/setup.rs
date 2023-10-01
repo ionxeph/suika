@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
+use crate::resources::NextGenerator;
+
 pub const CONTAINER_HALF_WIDTH: f32 = 150.0;
 pub struct SetupPlugin;
 
@@ -38,13 +40,17 @@ fn setup_container(mut commands: Commands) {
         )));
 }
 
-fn setup_preview(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup_preview(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    next_generator: Res<NextGenerator>,
+) {
     let texture_handle = asset_server.load("trimmed-yagoo.png");
     commands.spawn((
         Preview,
         SpriteBundle {
             sprite: Sprite {
-                custom_size: Some(Vec2::new(1.0, 1.0) * 26.0),
+                custom_size: Some(Vec2::new(1.0, 1.0) * next_generator.current_fruit.size),
                 ..default()
             },
             texture: texture_handle.clone(),
