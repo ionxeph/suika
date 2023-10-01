@@ -25,7 +25,7 @@ fn mouse_move_system(
     let mouse_pos = get_mouse_pos(q_windows, camera_q);
 
     if let Some(world_position) = mouse_pos {
-        let pos = mouse_x_in_bounds(world_position[0], next_generator.current_fruit.size); // TODO: change this size
+        let pos = pos_x_in_bounds(world_position[0], next_generator.current_fruit.size); // TODO: change this size
         let (_, mut sprite, mut transform) = query.single_mut();
         transform.translation.x = pos;
         sprite.custom_size = Some(Vec2::new(1.0, 1.0) * next_generator.current_fruit.size)
@@ -92,12 +92,12 @@ fn get_mouse_pos(
         .map(|ray| ray.origin.truncate())
 }
 
-fn spawn_yagoo(mut commands: Commands, asset_server: Res<AssetServer>, mouse_x: f32, size: f32) {
+fn spawn_yagoo(mut commands: Commands, asset_server: Res<AssetServer>, pos_x: f32, size: f32) {
     let texture_handle = asset_server.load("trimmed-yagoo.png");
 
     // make sure spawning position is in bounds
     // adding one pixel on either edge to prevent collision against wall on drop
-    let pos = mouse_x_in_bounds(mouse_x, size);
+    let pos = pos_x_in_bounds(pos_x, size);
 
     commands
         .spawn((
@@ -120,7 +120,7 @@ fn spawn_yagoo(mut commands: Commands, asset_server: Res<AssetServer>, mouse_x: 
         .insert(ActiveEvents::COLLISION_EVENTS);
 }
 
-fn mouse_x_in_bounds(raw_x: f32, sprite_size: f32) -> f32 {
+fn pos_x_in_bounds(raw_x: f32, sprite_size: f32) -> f32 {
     match raw_x {
         x if x < 0.0 => x.max((CONTAINER_HALF_WIDTH * -1.0 + sprite_size / 2.0) + 1.0),
         x if x > 0.0 => x.min((CONTAINER_HALF_WIDTH - sprite_size / 2.0) - 1.0),
