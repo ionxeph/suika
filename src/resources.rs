@@ -3,8 +3,18 @@ use rand::prelude::*;
 
 const CLICK_DELAY: f32 = 0.8;
 
-const SIZES: [f32; 11] = [
-    26.0, 40.0, 54.0, 60.0, 77.0, 92.0, 97.0, 129.0, 154.0, 174.0, 204.0,
+const KNOWN_TYPES: [(f32, &str); 11] = [
+    (26.0, "gura.png"),
+    (40.0, "yagoo.png"),
+    (54.0, "gura.png"),
+    (60.0, "yagoo.png"),
+    (77.0, "gura.png"),
+    (92.0, "yagoo.png"),
+    (97.0, "gura.png"),
+    (129.0, "yagoo.png"),
+    (154.0, "gura.png"),
+    (174.0, "yagoo.png"),
+    (204.0, "gura.png"),
 ];
 
 #[derive(Resource)]
@@ -38,9 +48,17 @@ impl Default for NextGenerator {
     fn default() -> Self {
         let mut rng = rand::thread_rng();
         let (cur, next) = (rng.gen_range(0..5), rng.gen_range(0..5));
+        let (cur_size, image_file_name) = KNOWN_TYPES[cur];
+        let (next_size, next_image_file_name) = KNOWN_TYPES[next];
         Self {
-            current_fruit: Fruit { size: SIZES[cur] },
-            next_fruit: Fruit { size: SIZES[next] },
+            current_fruit: Fruit {
+                size: cur_size,
+                image_file_name: String::from(image_file_name),
+            },
+            next_fruit: Fruit {
+                size: next_size,
+                image_file_name: String::from(next_image_file_name),
+            },
         }
     }
 }
@@ -49,24 +67,38 @@ impl NextGenerator {
     pub fn next(&mut self) {
         let mut rng = rand::thread_rng();
         let next = rng.gen_range(0..5);
-        self.current_fruit = Fruit {
-            size: self.next_fruit.size,
+        self.current_fruit = self.next_fruit.clone();
+        let (size, image_file_name) = KNOWN_TYPES[next];
+        self.next_fruit = Fruit {
+            size,
+            image_file_name: String::from(image_file_name),
         };
-        self.next_fruit = Fruit { size: SIZES[next] }
     }
 }
 
 #[derive(Component, Debug)]
 pub struct Fruit {
-    // TODO: add sprite field when adding more than just yagoo
     pub size: f32,
+    pub image_file_name: String,
 }
 
 impl Fruit {
-    pub fn merged_size(&self) -> Option<f32> {
-        if self.size == SIZES[10] {
+    pub fn clone(&self) -> Fruit {
+        Fruit {
+            size: self.size,
+            image_file_name: self.image_file_name.clone(),
+        }
+    }
+
+    pub fn merge(&self) -> Option<Fruit> {
+        if self.size == KNOWN_TYPES[10].0 {
             return None;
         }
-        Some(SIZES[SIZES.iter().position(|s| *s == self.size).unwrap() + 1])
+        let (size, image_file_name) =
+            KNOWN_TYPES[KNOWN_TYPES.iter().position(|s| s.0 == self.size).unwrap() + 1];
+        Some(Fruit {
+            size,
+            image_file_name: String::from(image_file_name),
+        })
     }
 }

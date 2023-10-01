@@ -5,7 +5,7 @@ use crate::resources::{Fruit, NextGenerator, SpawnTime};
 use crate::setup::{MainCamera, Preview, CONTAINER_HALF_WIDTH};
 
 const GRAVITY: f32 = 3.0;
-const RESTITUATION: f32 = 0.1;
+const RESTITUATION: f32 = 0.05;
 const MASS: f32 = 5.0;
 pub struct GamePlugin;
 
@@ -21,16 +21,19 @@ impl Plugin for GamePlugin {
 fn mouse_move_system(
     q_windows: Query<&Window, With<PrimaryWindow>>,
     camera_q: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
-    mut query: Query<(&Preview, &mut Sprite, &mut Transform)>,
+    mut query: Query<(&Preview, &mut Sprite, &mut Handle<Image>, &mut Transform)>,
+    asset_server: Res<AssetServer>,
     next_generator: Res<NextGenerator>,
 ) {
     let mouse_pos = get_mouse_pos(q_windows, camera_q);
 
     if let Some(world_position) = mouse_pos {
         let pos = pos_x_in_bounds(world_position[0], next_generator.current_fruit.size);
-        let (_, mut sprite, mut transform) = query.single_mut();
+        let (_, mut sprite, mut handle, mut transform) = query.single_mut();
         transform.translation.x = pos;
-        sprite.custom_size = Some(Vec2::new(1.0, 1.0) * next_generator.current_fruit.size)
+        sprite.custom_size = Some(Vec2::new(1.0, 1.0) * next_generator.current_fruit.size);
+        let texture_handle = asset_server.load(&next_generator.current_fruit.image_file_name);
+        *handle = texture_handle;
     }
 }
 
@@ -54,14 +57,14 @@ fn mouse_click_system(
     if mouse_button_input.just_pressed(MouseButton::Left) {
         if let Some(world_position) = mouse_pos {
             click_buffer.start_new_timer();
-            let size = next_generator.current_fruit.size;
+            let next_fruit = next_generator.current_fruit.clone();
             next_generator.next(); // after spawning current, go to next
-            let texture_handle = asset_server.load("trimmed-yagoo.png");
+            let texture_handle = asset_server.load(&next_fruit.image_file_name);
             commands.spawn(create_fruit_bundle(
                 texture_handle,
                 world_position[0],
                 None,
-                size,
+                next_fruit,
             ));
         }
     }
@@ -83,15 +86,14 @@ fn collision_system(
                     let new_y = (transform_a.translation.y + transform_b.translation.y) / 2.0;
                     // Fruit.merged_size returns None if two largest fruits collide
                     // in this case, both are despawned, and no new fruits created
-                    if let Some(size) = fruit_a.merged_size() {
-                        // spawn_yagoo(commands, &asset_server, new_x, Some(new_y), size);
-                        let texture_handle = asset_server.load("trimmed-yagoo.png");
+                    if let Some(fruit) = fruit_a.merge() {
+                        let texture_handle = asset_server.load(&fruit.image_file_name);
 
                         commands.spawn(create_fruit_bundle(
                             texture_handle,
                             new_x,
                             Some(new_y),
-                            size,
+                            fruit,
                         ));
                     }
 
@@ -121,7 +123,7 @@ fn create_fruit_bundle(
     texture_handle: Handle<Image>,
     pos_x: f32,
     pos_y: Option<f32>,
-    size: f32,
+    fruit: Fruit,
 ) -> (
     Fruit,
     RigidBody,
@@ -134,17 +136,18 @@ fn create_fruit_bundle(
 ) {
     // make sure spawning position is in bounds
     // adding one pixel on either edge to prevent collision against wall on drop
+    let size = fruit.size;
     let pos_x_in_bounds = pos_x_in_bounds(pos_x, size);
     let pos_y_in_bounds = pos_y.unwrap_or(250.0); // TODO: make sure this is in bounds
     (
-        Fruit { size },
+        fruit,
         RigidBody::Dynamic,
         SpriteBundle {
             sprite: Sprite {
                 custom_size: Some(Vec2::new(1.0, 1.0) * size),
                 ..default()
             },
-            texture: texture_handle.clone(),
+            texture: texture_handle,
             transform: Transform::from_xyz(pos_x_in_bounds, pos_y_in_bounds, 0.0),
             ..default()
         },

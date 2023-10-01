@@ -45,7 +45,8 @@ fn setup_preview(
     asset_server: Res<AssetServer>,
     next_generator: Res<NextGenerator>,
 ) {
-    let texture_handle = asset_server.load("trimmed-yagoo.png");
+    let file_name = &next_generator.current_fruit.image_file_name;
+    let texture_handle = asset_server.load(file_name);
     commands.spawn((
         Preview,
         SpriteBundle {
@@ -53,7 +54,7 @@ fn setup_preview(
                 custom_size: Some(Vec2::new(1.0, 1.0) * next_generator.current_fruit.size),
                 ..default()
             },
-            texture: texture_handle.clone(),
+            texture: texture_handle,
             transform: Transform::from_xyz(0.0, 250.0, 0.0),
             ..default()
         },
