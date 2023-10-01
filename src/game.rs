@@ -29,12 +29,15 @@ impl Plugin for GamePlugin {
     }
 }
 
-fn modify_body_translation(positions: Query<&Transform, With<Fruit>>) {
+fn modify_body_translation(
+    positions: Query<&Transform, With<Fruit>>,
+    mut next_state: ResMut<NextState<AppState>>,
+) {
     for position in positions.iter() {
         if position.translation.x > CONTAINER_WIDTH / 2.0 + CONTAINER_THICKNESS
             || position.translation.x < -CONTAINER_WIDTH / 2.0 - CONTAINER_THICKNESS
         {
-            // TODO: implement game over logic
+            next_state.set(AppState::GameOverMenu);
         }
     }
 }

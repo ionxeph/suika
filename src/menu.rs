@@ -1,5 +1,8 @@
 use bevy::{prelude::*, window::PrimaryWindow};
+use bevy_rapier2d::prelude::RigidBody;
 
+use crate::constants::SCREEN_HEIGHT;
+use crate::resources::Fruit;
 use crate::{setup::MainCamera, AppState};
 
 use crate::helpers::get_mouse_pos;
@@ -10,7 +13,13 @@ impl Plugin for MenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(AppState::StartMenu), setup_menu)
             .add_systems(Update, menu_system.run_if(in_state(AppState::StartMenu)))
-            .add_systems(OnExit(AppState::StartMenu), cleanup_menu);
+            .add_systems(OnExit(AppState::StartMenu), cleanup_menu)
+            .add_systems(OnEnter(AppState::GameOverMenu), setup_game_over)
+            .add_systems(Update, menu_system.run_if(in_state(AppState::GameOverMenu)))
+            .add_systems(
+                OnExit(AppState::GameOverMenu),
+                (cleanup_menu, cleanup_fruits),
+            );
     }
 }
 
@@ -37,7 +46,77 @@ fn setup_menu(mut commands: Commands) {
 
 fn cleanup_menu(mut commands: Commands, menu_items: Query<Entity, With<MenuItem>>) {
     for menu_item in menu_items.iter() {
-        commands.entity(menu_item).despawn();
+        commands.entity(menu_item).despawn_recursive();
+    }
+}
+
+fn setup_game_over(mut commands: Commands, mut fruits: Query<&mut RigidBody, With<Fruit>>) {
+    commands
+        .spawn((
+            MenuItem,
+            SpriteBundle {
+                sprite: Sprite {
+                    custom_size: Some(Vec2::new(50.0, 50.0)),
+                    color: Color::rgb(0.56, 1.0, 0.98),
+                    ..default()
+                },
+                transform: Transform::from_xyz(0.0, SCREEN_HEIGHT / 2.0 - 100.0, 0.0),
+                ..default()
+            },
+        ))
+        .with_children(|builder| {
+            builder.spawn((Text2dBundle {
+                text: Text::from_section(
+                    "click anywhere to restart",
+                    TextStyle {
+                        font_size: 30.0,
+                        color: Color::BLACK,
+                        ..default()
+                    },
+                )
+                .with_alignment(TextAlignment::Center),
+                transform: Transform::from_translation(Vec3::Z),
+                ..default()
+            },));
+        });
+
+    commands
+        .spawn((
+            MenuItem,
+            SpriteBundle {
+                sprite: Sprite {
+                    custom_size: Some(Vec2::new(50.0, 50.0)),
+                    color: Color::rgb(0.56, 1.0, 0.98),
+                    ..default()
+                },
+                transform: Transform::from_xyz(0.0, SCREEN_HEIGHT / 2.0 - 200.0, 0.0),
+                ..default()
+            },
+        ))
+        .with_children(|builder| {
+            builder.spawn((Text2dBundle {
+                text: Text::from_section(
+                    "GAME OVER",
+                    TextStyle {
+                        font_size: 50.0,
+                        color: Color::BLACK,
+                        ..default()
+                    },
+                )
+                .with_alignment(TextAlignment::Center),
+                transform: Transform::from_translation(Vec3::Z),
+                ..default()
+            },));
+        });
+
+    for mut fruit in fruits.iter_mut() {
+        *fruit = RigidBody::Fixed;
+    }
+}
+
+fn cleanup_fruits(mut commands: Commands, fruits: Query<Entity, With<Fruit>>) {
+    for fruit in fruits.iter() {
+        commands.entity(fruit).despawn_recursive();
     }
 }
 
