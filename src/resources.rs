@@ -61,3 +61,12 @@ pub struct Fruit {
     // TODO: add sprite field when adding more than just yagoo
     pub size: f32,
 }
+
+impl Fruit {
+    pub fn merged_size(&self) -> Option<f32> {
+        if self.size == SIZES[10] {
+            return None;
+        }
+        Some(SIZES[SIZES.iter().position(|s| *s == self.size).unwrap() + 1])
+    }
+}

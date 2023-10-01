@@ -54,28 +54,39 @@ fn mouse_click_system(
             click_buffer.start_new_timer();
             let size = next_generator.current_fruit.size;
             next_generator.next(); // after spawning current, go to next
-            spawn_yagoo(commands, asset_server, world_position[0], size);
+            spawn_yagoo(commands, &asset_server, world_position[0], None, size);
         }
     }
 }
 
 fn collision_system(
     mut collisions: EventReader<CollisionEvent>,
-    fruits: Query<&Fruit>,
+    asset_server: Res<AssetServer>,
+    fruits: Query<(&Fruit, &mut Transform)>,
     mut commands: Commands,
 ) {
     for collision in collisions.iter() {
         if let CollisionEvent::Started(collider_a, collider_b, _) = collision {
-            if let Ok([fruit_a, fruit_b]) = fruits.get_many([*collider_a, *collider_b]) {
-                println!("{:?}: {:?}", fruit_a, fruit_b);
+            if let Ok([(fruit_a, transform_a), (fruit_b, transform_b)]) =
+                fruits.get_many([*collider_a, *collider_b])
+            {
                 if fruit_a.size == fruit_b.size {
+                    let new_x = (transform_a.translation.x + transform_b.translation.x) / 2.0;
+                    let new_y = (transform_a.translation.y + transform_b.translation.y) / 2.0;
+                    // Fruit.merged_size returns None if two largest fruits collide
+                    // in this case, both are despawned, and no new fruits created
+                    if let Some(size) = fruit_a.merged_size() {
+                        // spawn_yagoo(commands, &asset_server, new_x, Some(new_y), size);
+                        // TODO: this spawn doesn't work due to commands being inside of a loop that pisses off the borrow checker
+                        // commtemplated solution: add a resource with a hashset to track position and size of any new fruits that should be spawned, and write a separate system to spawn them
+                    }
+
                     commands.entity(*collider_a).despawn();
                     commands.entity(*collider_b).despawn();
                 }
             }
         }
     }
-    // TODO: spawn new larger fruit
 }
 
 fn get_mouse_pos(
@@ -92,12 +103,19 @@ fn get_mouse_pos(
         .map(|ray| ray.origin.truncate())
 }
 
-fn spawn_yagoo(mut commands: Commands, asset_server: Res<AssetServer>, pos_x: f32, size: f32) {
+fn spawn_yagoo(
+    mut commands: Commands,
+    asset_server: &Res<AssetServer>,
+    pos_x: f32,
+    pos_y: Option<f32>,
+    size: f32,
+) {
     let texture_handle = asset_server.load("trimmed-yagoo.png");
 
     // make sure spawning position is in bounds
     // adding one pixel on either edge to prevent collision against wall on drop
-    let pos = pos_x_in_bounds(pos_x, size);
+    let pos_x_in_bounds = pos_x_in_bounds(pos_x, size);
+    let pos_y_in_bounds = pos_y.unwrap_or(250.0);
 
     commands
         .spawn((
@@ -116,7 +134,11 @@ fn spawn_yagoo(mut commands: Commands, asset_server: Res<AssetServer>, pos_x: f3
         .insert(GravityScale(GRAVITY))
         .insert(ColliderMassProperties::Mass(2.0)) // TODO: configure mass according to size
         .insert(Restitution::coefficient(0.3))
-        .insert(TransformBundle::from(Transform::from_xyz(pos, 250.0, 0.0)))
+        .insert(TransformBundle::from(Transform::from_xyz(
+            pos_x_in_bounds,
+            pos_y_in_bounds,
+            0.0,
+        )))
         .insert(ActiveEvents::COLLISION_EVENTS);
 }
 
