@@ -3,6 +3,12 @@ use rand::prelude::*;
 
 use crate::constants::{CLICK_DELAY, KNOWN_TYPES};
 
+#[derive(Resource, Default)]
+pub struct GameAlreadySetUp {
+    // prevent game setup systems from running when transitioning from GameOver state to InGame state
+    pub is_set_up: bool,
+}
+
 #[derive(Resource)]
 pub struct SpawnTime {
     // prevent spawning in quick succession

@@ -1,8 +1,10 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_rapier2d::prelude::*;
 
+use crate::helpers::get_mouse_pos;
 use crate::resources::{Fruit, NextGenerator, SpawnTime};
 use crate::setup::{MainCamera, NextPreview, Preview};
+use crate::AppState;
 
 use crate::constants::{
     CONTAINER_THICKNESS, CONTAINER_WIDTH, GRAVITY, MASS, MAX_SPEED, MAX_X_VELOCITY_BEFORE_CLAMP,
@@ -21,7 +23,8 @@ impl Plugin for GamePlugin {
                 collision_system,
                 clamp_upward_velocity,
                 modify_body_translation,
-            ),
+            )
+                .run_if(in_state(AppState::InGame)),
         );
     }
 }
@@ -140,20 +143,6 @@ fn collision_system(
             }
         }
     }
-}
-
-fn get_mouse_pos(
-    q_windows: Query<&Window, With<PrimaryWindow>>,
-    camera_q: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
-) -> Option<Vec2> {
-    // get the camera info and transform
-    // assuming there is exactly one main camera entity, so query::single() is OK
-    let (camera, camera_transform) = camera_q.single();
-    q_windows
-        .single()
-        .cursor_position()
-        .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor))
-        .map(|ray| ray.origin.truncate())
 }
 
 fn create_fruit_bundle(

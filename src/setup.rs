@@ -6,22 +6,22 @@ use crate::{
         CONTAINER_BASE_OFFSET, CONTAINER_HEIGHT, CONTAINER_THICKNESS, CONTAINER_WIDTH, KNOWN_TYPES,
         NEXT_PREVIEW_LABEL_SIZE, NEXT_PREVIEW_OFFSET, SCREEN_HEIGHT, SCREEN_WIDTH, SPAWN_HEIGHT,
     },
-    resources::NextGenerator,
+    resources::{GameAlreadySetUp, NextGenerator},
+    AppState,
 };
 
 pub struct SetupPlugin;
 
 impl Plugin for SetupPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Startup,
-            (
-                setup_container,
-                setup_app_boundaries,
-                setup_camera,
-                setup_preview,
-            ),
-        );
+        app.add_systems(Startup, setup_camera)
+            .add_systems(
+                OnEnter(AppState::InGame),
+                (setup_container, setup_app_boundaries),
+            )
+            // unlike the other setups, previews are thrown out in GameOver state, and recreated after starting over
+            .add_systems(OnEnter(AppState::InGame), setup_preview)
+            .add_systems(OnExit(AppState::InGame), cleanup_preview);
     }
 }
 
@@ -35,7 +35,14 @@ pub struct Preview;
 #[derive(Component)]
 pub struct NextPreview;
 
-fn setup_container(mut commands: Commands) {
+#[derive(Component)]
+pub struct PreviewPart;
+
+fn setup_container(mut commands: Commands, game_already_set_up: Res<GameAlreadySetUp>) {
+    if game_already_set_up.is_set_up {
+        return;
+    }
+
     let container_base = -SCREEN_HEIGHT / 2.0 + CONTAINER_BASE_OFFSET;
     /* Create the container. */
     commands.spawn((
@@ -87,7 +94,11 @@ fn setup_container(mut commands: Commands) {
     ));
 }
 
-fn setup_app_boundaries(mut commands: Commands) {
+fn setup_app_boundaries(mut commands: Commands, game_already_set_up: Res<GameAlreadySetUp>) {
+    if game_already_set_up.is_set_up {
+        return;
+    }
+
     commands.spawn((
         Collider::cuboid(SCREEN_WIDTH / 2.0, 1.0),
         TransformBundle::from(Transform::from_xyz(0.0, -SCREEN_HEIGHT / 2.0, 0.0)),
@@ -118,6 +129,7 @@ fn setup_preview(
     let texture_handle = asset_server.load(file_name);
     commands.spawn((
         Preview,
+        PreviewPart,
         SpriteBundle {
             sprite: Sprite {
                 custom_size: Some(Vec2::new(1.0, 1.0) * next_generator.current_fruit.size),
@@ -133,6 +145,7 @@ fn setup_preview(
     let texture_handle = asset_server.load(file_name);
     commands.spawn((
         NextPreview,
+        PreviewPart,
         SpriteBundle {
             sprite: Sprite {
                 custom_size: Some(Vec2::new(1.0, 1.0) * next_generator.next_fruit.size),
@@ -149,19 +162,22 @@ fn setup_preview(
     ));
 
     commands
-        .spawn(SpriteBundle {
-            sprite: Sprite {
-                custom_size: Some(Vec2::new(100.0, 50.0)),
-                color: Color::rgb(0.56, 1.0, 0.98),
+        .spawn((
+            PreviewPart,
+            SpriteBundle {
+                sprite: Sprite {
+                    custom_size: Some(Vec2::new(100.0, 50.0)),
+                    color: Color::rgb(0.56, 1.0, 0.98),
+                    ..default()
+                },
+                transform: Transform::from_xyz(
+                    CONTAINER_WIDTH / 2.0 + NEXT_PREVIEW_OFFSET,
+                    CONTAINER_HEIGHT / 2.0 + KNOWN_TYPES[5].0 / 2.0 + NEXT_PREVIEW_LABEL_SIZE / 2.0,
+                    0.0,
+                ),
                 ..default()
             },
-            transform: Transform::from_xyz(
-                CONTAINER_WIDTH / 2.0 + NEXT_PREVIEW_OFFSET,
-                CONTAINER_HEIGHT / 2.0 + KNOWN_TYPES[5].0 / 2.0 + NEXT_PREVIEW_LABEL_SIZE / 2.0,
-                0.0,
-            ),
-            ..default()
-        })
+        ))
         .with_children(|builder| {
             builder.spawn(Text2dBundle {
                 text: Text::from_section(
@@ -177,6 +193,12 @@ fn setup_preview(
                 ..default()
             });
         });
+}
+
+fn cleanup_preview(mut commands: Commands, preview_parts: Query<Entity, With<PreviewPart>>) {
+    for preview_part in preview_parts.iter() {
+        commands.entity(preview_part).despawn_recursive();
+    }
 }
 
 fn setup_camera(mut commands: Commands) {
