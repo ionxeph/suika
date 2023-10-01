@@ -12,7 +12,7 @@ module.exports = {
     new CopyPlugin({
       patterns: [
         { from: './index.html', to: './' },
-        { from: './pkg', to: 'pkg' },
+        // { from: './pkg', to: 'pkg' },
         { from: './assets', to: 'assets' },
       ],
     }),
@@ -20,5 +20,10 @@ module.exports = {
   experiments: {
     asyncWebAssembly: true,
     syncWebAssembly: true,
+  },
+  performance: {
+    hints: false,
+    maxEntrypointSize: 512000,
+    maxAssetSize: 512000,
   },
 };

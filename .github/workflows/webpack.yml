@@ -35,7 +35,7 @@ jobs:
       - name: include wasm-bindgen
         uses: jetli/wasm-bindgen-action@v0.2.0
         with:
-          version: '0.2.87:'
+          version: '0.2.87'
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
