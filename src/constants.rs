@@ -1,10 +1,12 @@
-pub const SCREEN_WIDTH: f32 = 600.0;
+pub const SCREEN_WIDTH: f32 = 1200.0;
 pub const SCREEN_HEIGHT: f32 = 800.0;
 
 pub const CONTAINER_WIDTH: f32 = 300.0;
 pub const CONTAINER_HEIGHT: f32 = 500.0;
 pub const CONTAINER_THICKNESS: f32 = 20.0;
 pub const CONTAINER_BASE_OFFSET: f32 = 25.0;
+pub const NEXT_PREVIEW_OFFSET: f32 = 100.0;
+pub const NEXT_PREVIEW_LABEL_SIZE: f32 = 40.0;
 
 pub const GRAVITY: f32 = 3.0;
 pub const RESTITUATION: f32 = 0.05;
@@ -13,7 +15,7 @@ pub const MAX_SPEED: f32 = 100.0;
 pub const MAX_Y_VELOCITY_BEFORE_CLAMP: f32 = 50.0;
 pub const MAX_X_VELOCITY_BEFORE_CLAMP: f32 = 50.0;
 
-pub const CLICK_DELAY: f32 = 0.8;
+pub const CLICK_DELAY: f32 = 0.5;
 pub const KNOWN_TYPES: [(f32, &str); 11] = [
     (26.0, "gura.png"),
     (40.0, "aqua.png"),

@@ -2,10 +2,10 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_rapier2d::prelude::*;
 
 use crate::resources::{Fruit, NextGenerator, SpawnTime};
-use crate::setup::{MainCamera, Preview};
+use crate::setup::{MainCamera, NextPreview, Preview};
 
 use crate::constants::{
-    CONTAINER_WIDTH, GRAVITY, MASS, MAX_SPEED, MAX_X_VELOCITY_BEFORE_CLAMP,
+    CONTAINER_HEIGHT, CONTAINER_WIDTH, GRAVITY, MASS, MAX_SPEED, MAX_X_VELOCITY_BEFORE_CLAMP,
     MAX_Y_VELOCITY_BEFORE_CLAMP, RESTITUATION,
 };
 
@@ -17,7 +17,7 @@ impl Plugin for GamePlugin {
             Update,
             (
                 mouse_click_system,
-                mouse_move_system,
+                update_preview_system,
                 collision_system,
                 clamp_upward_velocity,
             ),
@@ -36,10 +36,11 @@ fn clamp_upward_velocity(mut velocities: Query<&mut Velocity>) {
     }
 }
 
-fn mouse_move_system(
+fn update_preview_system(
     q_windows: Query<&Window, With<PrimaryWindow>>,
     camera_q: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
-    mut query: Query<(&Preview, &mut Sprite, &mut Handle<Image>, &mut Transform)>,
+    mut preview: Query<(&Preview, &mut Sprite, &mut Handle<Image>, &mut Transform)>,
+    mut next_preview: Query<(&NextPreview, &mut Sprite, &mut Handle<Image>), Without<Preview>>,
     asset_server: Res<AssetServer>,
     next_generator: Res<NextGenerator>,
 ) {
@@ -47,11 +48,18 @@ fn mouse_move_system(
 
     if let Some(world_position) = mouse_pos {
         let pos = pos_x_in_bounds(world_position[0], next_generator.current_fruit.size);
-        let (_, mut sprite, mut handle, mut transform) = query.single_mut();
+        // update current preview
+        let (_, mut sprite, mut handle, mut transform) = preview.single_mut();
         transform.translation.x = pos;
         sprite.custom_size = Some(Vec2::new(1.0, 1.0) * next_generator.current_fruit.size);
         let texture_handle = asset_server.load(&next_generator.current_fruit.image_file_name);
         *handle = texture_handle;
+
+        // update next preview
+        let (_, mut next_sprite, mut next_handle) = next_preview.single_mut();
+        next_sprite.custom_size = Some(Vec2::new(1.0, 1.0) * next_generator.next_fruit.size);
+        let next_texture_handle = asset_server.load(&next_generator.next_fruit.image_file_name);
+        *next_handle = next_texture_handle;
     }
 }
 
@@ -81,7 +89,7 @@ fn mouse_click_system(
             commands.spawn(create_fruit_bundle(
                 texture_handle,
                 world_position[0],
-                None,
+                CONTAINER_HEIGHT / 2.0,
                 next_fruit,
             ));
         }
@@ -107,12 +115,7 @@ fn collision_system(
                     if let Some(fruit) = fruit_a.merge() {
                         let texture_handle = asset_server.load(&fruit.image_file_name);
 
-                        commands.spawn(create_fruit_bundle(
-                            texture_handle,
-                            new_x,
-                            Some(new_y),
-                            fruit,
-                        ));
+                        commands.spawn(create_fruit_bundle(texture_handle, new_x, new_y, fruit));
                     }
 
                     commands.entity(*collider_a).despawn();
@@ -140,7 +143,7 @@ fn get_mouse_pos(
 fn create_fruit_bundle(
     texture_handle: Handle<Image>,
     pos_x: f32,
-    pos_y: Option<f32>,
+    pos_y: f32,
     fruit: Fruit,
 ) -> (
     Fruit,
@@ -157,7 +160,7 @@ fn create_fruit_bundle(
     // adding one pixel on either edge to prevent collision against wall on drop
     let size = fruit.size;
     let pos_x_in_bounds = pos_x_in_bounds(pos_x, size);
-    let pos_y_in_bounds = pos_y.unwrap_or(250.0); // TODO: make sure this is in bounds
+    let pos_y_in_bounds = pos_y; // TODO: make sure this is in bounds
     (
         fruit,
         RigidBody::Dynamic,
