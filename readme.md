@@ -4,7 +4,7 @@ I decided to learn Rust and saw the Suika Game boom in popularity within Hololiv
 
 Rust comes with [Bevy](https://github.com/bevyengine/bevy) (game engine) and [Rapier](https://github.com/dimforge/bevy_rapier) (physics engine), so much of this was fairly simple.
 
-The game is very minimal, with no music/sound and very minimal (and ugly) UI.
+The game is very minimal, with no music/sound and very minimal (and ugly) UI. The game logic may also be buggy.
 
 I may come back to fix bugs and/or make other improvements.
 

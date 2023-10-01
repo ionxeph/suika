@@ -44,6 +44,7 @@ jobs:
 
       - name: NPM build
         run: |
+          npm install
           rustup target add wasm32-unknown-unknown
           npm run build:all
         
