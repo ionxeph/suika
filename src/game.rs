@@ -4,7 +4,10 @@ use bevy_rapier2d::prelude::*;
 use crate::resources::{Fruit, NextGenerator, SpawnTime};
 use crate::setup::{MainCamera, Preview};
 
-use crate::constants::{CONTAINER_WIDTH, GRAVITY, MASS, RESTITUATION};
+use crate::constants::{
+    CONTAINER_WIDTH, GRAVITY, MASS, MAX_SPEED, MAX_X_VELOCITY_BEFORE_CLAMP,
+    MAX_Y_VELOCITY_BEFORE_CLAMP, RESTITUATION,
+};
 
 pub struct GamePlugin;
 
@@ -12,8 +15,24 @@ impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (mouse_click_system, mouse_move_system, collision_system),
+            (
+                mouse_click_system,
+                mouse_move_system,
+                collision_system,
+                clamp_upward_velocity,
+            ),
         );
+    }
+}
+
+fn clamp_upward_velocity(mut velocities: Query<&mut Velocity>) {
+    for mut vel in velocities.iter_mut() {
+        if vel.linvel.y > MAX_Y_VELOCITY_BEFORE_CLAMP {
+            vel.linvel = vel.linvel.clamp_length_max(MAX_SPEED);
+        }
+        if vel.linvel.x > MAX_X_VELOCITY_BEFORE_CLAMP {
+            vel.linvel = vel.linvel.clamp_length_max(MAX_SPEED);
+        }
     }
 }
 
@@ -132,6 +151,7 @@ fn create_fruit_bundle(
     ColliderMassProperties,
     Restitution,
     ActiveEvents,
+    Velocity,
 ) {
     // make sure spawning position is in bounds
     // adding one pixel on either edge to prevent collision against wall on drop
@@ -155,12 +175,16 @@ fn create_fruit_bundle(
         ColliderMassProperties::Mass(MASS), // TODO: figure out if this requires changing
         Restitution::coefficient(RESTITUATION),
         ActiveEvents::COLLISION_EVENTS,
+        Velocity {
+            linvel: Vec2::new(0.0, 0.0),
+            angvel: 0.0,
+        },
     )
 }
 
 fn pos_x_in_bounds(raw_x: f32, sprite_size: f32) -> f32 {
     match raw_x {
-        x if x < 0.0 => x.max((CONTAINER_WIDTH / 2.0 * -1.0 + sprite_size / 2.0) + 1.0),
+        x if x < 0.0 => x.max((-CONTAINER_WIDTH / 2.0 + sprite_size / 2.0) + 1.0),
         x if x > 0.0 => x.min((CONTAINER_WIDTH / 2.0 - sprite_size / 2.0) - 1.0),
         _ => raw_x,
     }

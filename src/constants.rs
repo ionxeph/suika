@@ -9,6 +9,9 @@ pub const CONTAINER_BASE_OFFSET: f32 = 25.0;
 pub const GRAVITY: f32 = 3.0;
 pub const RESTITUATION: f32 = 0.05;
 pub const MASS: f32 = 5.0;
+pub const MAX_SPEED: f32 = 100.0;
+pub const MAX_Y_VELOCITY_BEFORE_CLAMP: f32 = 50.0;
+pub const MAX_X_VELOCITY_BEFORE_CLAMP: f32 = 50.0;
 
 pub const CLICK_DELAY: f32 = 0.8;
 pub const KNOWN_TYPES: [(f32, &str); 11] = [

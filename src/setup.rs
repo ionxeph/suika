@@ -25,7 +25,7 @@ pub struct MainCamera;
 pub struct Preview;
 
 fn setup_container(mut commands: Commands) {
-    let container_base = SCREEN_HEIGHT / 2.0 * -1.0 + CONTAINER_BASE_OFFSET;
+    let container_base = -SCREEN_HEIGHT / 2.0 + CONTAINER_BASE_OFFSET;
     /* Create the container. */
     commands.spawn((
         Collider::cuboid(CONTAINER_WIDTH / 2.0, CONTAINER_THICKNESS / 2.0),
@@ -67,7 +67,7 @@ fn setup_container(mut commands: Commands) {
                 ..default()
             },
             transform: Transform::from_xyz(
-                (CONTAINER_WIDTH + CONTAINER_THICKNESS) / 2.0 * -1.0,
+                -(CONTAINER_WIDTH + CONTAINER_THICKNESS) / 2.0,
                 wall_base,
                 0.0,
             ),
