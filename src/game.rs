@@ -5,6 +5,8 @@ use crate::resources::{Fruit, NextGenerator, SpawnTime};
 use crate::setup::{MainCamera, Preview, CONTAINER_HALF_WIDTH};
 
 const GRAVITY: f32 = 3.0;
+const RESTITUATION: f32 = 0.1;
+const MASS: f32 = 5.0;
 pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
@@ -25,7 +27,7 @@ fn mouse_move_system(
     let mouse_pos = get_mouse_pos(q_windows, camera_q);
 
     if let Some(world_position) = mouse_pos {
-        let pos = pos_x_in_bounds(world_position[0], next_generator.current_fruit.size); // TODO: change this size
+        let pos = pos_x_in_bounds(world_position[0], next_generator.current_fruit.size);
         let (_, mut sprite, mut transform) = query.single_mut();
         transform.translation.x = pos;
         sprite.custom_size = Some(Vec2::new(1.0, 1.0) * next_generator.current_fruit.size)
@@ -34,7 +36,7 @@ fn mouse_move_system(
 
 #[allow(clippy::too_many_arguments)]
 fn mouse_click_system(
-    commands: Commands,
+    mut commands: Commands,
     mouse_button_input: Res<Input<MouseButton>>,
     asset_server: Res<AssetServer>,
     q_windows: Query<&Window, With<PrimaryWindow>>,
@@ -54,7 +56,13 @@ fn mouse_click_system(
             click_buffer.start_new_timer();
             let size = next_generator.current_fruit.size;
             next_generator.next(); // after spawning current, go to next
-            spawn_yagoo(commands, &asset_server, world_position[0], None, size);
+            let texture_handle = asset_server.load("trimmed-yagoo.png");
+            commands.spawn(create_fruit_bundle(
+                texture_handle,
+                world_position[0],
+                None,
+                size,
+            ));
         }
     }
 }
@@ -77,8 +85,14 @@ fn collision_system(
                     // in this case, both are despawned, and no new fruits created
                     if let Some(size) = fruit_a.merged_size() {
                         // spawn_yagoo(commands, &asset_server, new_x, Some(new_y), size);
-                        // TODO: this spawn doesn't work due to commands being inside of a loop that pisses off the borrow checker
-                        // commtemplated solution: add a resource with a hashset to track position and size of any new fruits that should be spawned, and write a separate system to spawn them
+                        let texture_handle = asset_server.load("trimmed-yagoo.png");
+
+                        commands.spawn(create_fruit_bundle(
+                            texture_handle,
+                            new_x,
+                            Some(new_y),
+                            size,
+                        ));
                     }
 
                     commands.entity(*collider_a).despawn();
@@ -103,43 +117,43 @@ fn get_mouse_pos(
         .map(|ray| ray.origin.truncate())
 }
 
-fn spawn_yagoo(
-    mut commands: Commands,
-    asset_server: &Res<AssetServer>,
+fn create_fruit_bundle(
+    texture_handle: Handle<Image>,
     pos_x: f32,
     pos_y: Option<f32>,
     size: f32,
+) -> (
+    Fruit,
+    RigidBody,
+    SpriteBundle,
+    Collider,
+    GravityScale,
+    ColliderMassProperties,
+    Restitution,
+    ActiveEvents,
 ) {
-    let texture_handle = asset_server.load("trimmed-yagoo.png");
-
     // make sure spawning position is in bounds
     // adding one pixel on either edge to prevent collision against wall on drop
     let pos_x_in_bounds = pos_x_in_bounds(pos_x, size);
-    let pos_y_in_bounds = pos_y.unwrap_or(250.0);
-
-    commands
-        .spawn((
-            Fruit { size },
-            RigidBody::Dynamic,
-            SpriteBundle {
-                sprite: Sprite {
-                    custom_size: Some(Vec2::new(1.0, 1.0) * size),
-                    ..default()
-                },
-                texture: texture_handle.clone(),
+    let pos_y_in_bounds = pos_y.unwrap_or(250.0); // TODO: make sure this is in bounds
+    (
+        Fruit { size },
+        RigidBody::Dynamic,
+        SpriteBundle {
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(1.0, 1.0) * size),
                 ..default()
             },
-        ))
-        .insert(Collider::ball(size / 2.))
-        .insert(GravityScale(GRAVITY))
-        .insert(ColliderMassProperties::Mass(2.0)) // TODO: configure mass according to size
-        .insert(Restitution::coefficient(0.3))
-        .insert(TransformBundle::from(Transform::from_xyz(
-            pos_x_in_bounds,
-            pos_y_in_bounds,
-            0.0,
-        )))
-        .insert(ActiveEvents::COLLISION_EVENTS);
+            texture: texture_handle.clone(),
+            transform: Transform::from_xyz(pos_x_in_bounds, pos_y_in_bounds, 0.0),
+            ..default()
+        },
+        Collider::ball(size / 2.0),
+        GravityScale(GRAVITY),
+        ColliderMassProperties::Mass(MASS), // TODO: figure out if this requires changing
+        Restitution::coefficient(RESTITUATION),
+        ActiveEvents::COLLISION_EVENTS,
+    )
 }
 
 fn pos_x_in_bounds(raw_x: f32, sprite_size: f32) -> f32 {
