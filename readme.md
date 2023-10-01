@@ -13,3 +13,7 @@ I will commit to making improvements if someone wishes to help out in the art/de
 # Legal stuff?
 
 I have no idea how necessary this is, but I don't own any assets used in this game. They belong to Cover Corp.
+
+# Special thanks
+
+In assets, I have kept an shoddily cropped yagoo.png file. He accompanied me throughout most of the dev process.
