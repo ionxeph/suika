@@ -28,6 +28,7 @@ impl SpawnTime {
 pub struct NextGenerator {
     pub current_fruit: Fruit,
     pub next_fruit: Fruit,
+    pub should_update_previews: bool,
 }
 
 impl Default for NextGenerator {
@@ -45,6 +46,7 @@ impl Default for NextGenerator {
                 size: next_size,
                 image_file_name: String::from(next_image_file_name),
             },
+            should_update_previews: false,
         }
     }
 }
@@ -59,6 +61,11 @@ impl NextGenerator {
             size,
             image_file_name: String::from(image_file_name),
         };
+        self.should_update_previews = true;
+    }
+
+    pub fn preview_updated(&mut self) {
+        self.should_update_previews = false;
     }
 }
 
