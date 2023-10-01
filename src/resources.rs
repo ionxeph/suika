@@ -56,7 +56,7 @@ impl NextGenerator {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Fruit {
     // TODO: add sprite field when adding more than just yagoo
     pub size: f32,

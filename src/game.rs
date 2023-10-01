@@ -1,7 +1,7 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_rapier2d::prelude::*;
 
-use crate::resources::{NextGenerator, SpawnTime};
+use crate::resources::{Fruit, NextGenerator, SpawnTime};
 use crate::setup::{MainCamera, Preview, CONTAINER_HALF_WIDTH};
 
 const GRAVITY: f32 = 3.0;
@@ -9,14 +9,14 @@ pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (mouse_click_system, mouse_move_system));
+        app.add_systems(
+            Update,
+            (mouse_click_system, mouse_move_system, collision_system),
+        );
     }
 }
 
 fn mouse_move_system(
-    // commands: Commands,
-    // mouse_button_input: Res<Input<MouseButton>>,
-    // asset_server: Res<AssetServer>,
     q_windows: Query<&Window, With<PrimaryWindow>>,
     camera_q: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
     mut query: Query<(&Preview, &mut Sprite, &mut Transform)>,
@@ -59,6 +59,25 @@ fn mouse_click_system(
     }
 }
 
+fn collision_system(
+    mut collisions: EventReader<CollisionEvent>,
+    fruits: Query<&Fruit>,
+    mut commands: Commands,
+) {
+    for collision in collisions.iter() {
+        if let CollisionEvent::Started(collider_a, collider_b, _) = collision {
+            if let Ok([fruit_a, fruit_b]) = fruits.get_many([*collider_a, *collider_b]) {
+                println!("{:?}: {:?}", fruit_a, fruit_b);
+                if fruit_a.size == fruit_b.size {
+                    commands.entity(*collider_a).despawn();
+                    commands.entity(*collider_b).despawn();
+                }
+            }
+        }
+    }
+    // TODO: spawn new larger fruit
+}
+
 fn get_mouse_pos(
     q_windows: Query<&Window, With<PrimaryWindow>>,
     camera_q: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
@@ -82,6 +101,7 @@ fn spawn_yagoo(mut commands: Commands, asset_server: Res<AssetServer>, mouse_x: 
 
     commands
         .spawn((
+            Fruit { size },
             RigidBody::Dynamic,
             SpriteBundle {
                 sprite: Sprite {
@@ -93,10 +113,11 @@ fn spawn_yagoo(mut commands: Commands, asset_server: Res<AssetServer>, mouse_x: 
             },
         ))
         .insert(Collider::ball(size / 2.))
-        .insert(GravityScale(3.0))
-        .insert(ColliderMassProperties::Mass(GRAVITY)) // TODO: configure mass according to size
+        .insert(GravityScale(GRAVITY))
+        .insert(ColliderMassProperties::Mass(2.0)) // TODO: configure mass according to size
         .insert(Restitution::coefficient(0.3))
-        .insert(TransformBundle::from(Transform::from_xyz(pos, 250.0, 0.0)));
+        .insert(TransformBundle::from(Transform::from_xyz(pos, 250.0, 0.0)))
+        .insert(ActiveEvents::COLLISION_EVENTS);
 }
 
 fn mouse_x_in_bounds(raw_x: f32, sprite_size: f32) -> f32 {
