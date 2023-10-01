@@ -1,9 +1,14 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::resources::NextGenerator;
+use crate::{
+    constants::{
+        CONTAINER_BASE_OFFSET, CONTAINER_HEIGHT, CONTAINER_THICKNESS, CONTAINER_WIDTH,
+        SCREEN_HEIGHT,
+    },
+    resources::NextGenerator,
+};
 
-pub const CONTAINER_HALF_WIDTH: f32 = 150.0;
 pub struct SetupPlugin;
 
 impl Plugin for SetupPlugin {
@@ -20,24 +25,55 @@ pub struct MainCamera;
 pub struct Preview;
 
 fn setup_container(mut commands: Commands) {
+    let container_base = SCREEN_HEIGHT / 2.0 * -1.0 + CONTAINER_BASE_OFFSET;
     /* Create the container. */
-    commands
-        .spawn(Collider::cuboid(CONTAINER_HALF_WIDTH, 10.0))
-        .insert(TransformBundle::from(Transform::from_xyz(0.0, -375.0, 0.0)));
-    commands
-        .spawn(Collider::cuboid(10.0, 275.0))
-        .insert(TransformBundle::from(Transform::from_xyz(
-            CONTAINER_HALF_WIDTH + 10.0,
-            -110.0,
-            0.0,
-        )));
-    commands
-        .spawn(Collider::cuboid(10.0, 275.0))
-        .insert(TransformBundle::from(Transform::from_xyz(
-            CONTAINER_HALF_WIDTH * -1.0 - 10.0,
-            -110.0,
-            0.0,
-        )));
+    commands.spawn((
+        Collider::cuboid(CONTAINER_WIDTH / 2.0, CONTAINER_THICKNESS / 2.0),
+        SpriteBundle {
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(CONTAINER_WIDTH, CONTAINER_THICKNESS)),
+                color: Color::rgb(0.0, 0.0, 0.55),
+                ..default()
+            },
+            transform: Transform::from_xyz(0.0, container_base, 0.0),
+            ..default()
+        },
+    ));
+
+    let wall_height = CONTAINER_HEIGHT + CONTAINER_THICKNESS;
+    let wall_base = container_base + CONTAINER_HEIGHT / 2.0;
+    commands.spawn((
+        Collider::cuboid(CONTAINER_THICKNESS / 2.0, wall_height / 2.0),
+        SpriteBundle {
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(CONTAINER_THICKNESS, wall_height)),
+                color: Color::rgb(0.0, 0.0, 0.55),
+                ..default()
+            },
+            transform: Transform::from_xyz(
+                (CONTAINER_WIDTH + CONTAINER_THICKNESS) / 2.0,
+                wall_base,
+                0.0,
+            ),
+            ..default()
+        },
+    ));
+    commands.spawn((
+        Collider::cuboid(CONTAINER_THICKNESS / 2.0, wall_height / 2.0),
+        SpriteBundle {
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(CONTAINER_THICKNESS, wall_height)),
+                color: Color::rgb(0.0, 0.0, 0.55),
+                ..default()
+            },
+            transform: Transform::from_xyz(
+                (CONTAINER_WIDTH + CONTAINER_THICKNESS) / 2.0 * -1.0,
+                wall_base,
+                0.0,
+            ),
+            ..default()
+        },
+    ));
 }
 
 fn setup_preview(

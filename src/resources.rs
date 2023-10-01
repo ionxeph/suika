@@ -1,21 +1,7 @@
 use bevy::prelude::*;
 use rand::prelude::*;
 
-const CLICK_DELAY: f32 = 0.8;
-
-const KNOWN_TYPES: [(f32, &str); 11] = [
-    (26.0, "gura.png"),
-    (40.0, "aqua.png"),
-    (54.0, "hakos.png"),
-    (60.0, "towa.png"),
-    (77.0, "kobo.png"),
-    (92.0, "ayame.png"),
-    (97.0, "koyori.png"),
-    (129.0, "fubuki.png"),
-    (154.0, "mio.png"),
-    (174.0, "ollie.png"),
-    (204.0, "sana.png"),
-];
+use crate::constants::{CLICK_DELAY, KNOWN_TYPES};
 
 #[derive(Resource)]
 pub struct SpawnTime {

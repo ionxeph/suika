@@ -2,11 +2,10 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_rapier2d::prelude::*;
 
 use crate::resources::{Fruit, NextGenerator, SpawnTime};
-use crate::setup::{MainCamera, Preview, CONTAINER_HALF_WIDTH};
+use crate::setup::{MainCamera, Preview};
 
-const GRAVITY: f32 = 3.0;
-const RESTITUATION: f32 = 0.05;
-const MASS: f32 = 5.0;
+use crate::constants::{CONTAINER_WIDTH, GRAVITY, MASS, RESTITUATION};
+
 pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
@@ -161,8 +160,8 @@ fn create_fruit_bundle(
 
 fn pos_x_in_bounds(raw_x: f32, sprite_size: f32) -> f32 {
     match raw_x {
-        x if x < 0.0 => x.max((CONTAINER_HALF_WIDTH * -1.0 + sprite_size / 2.0) + 1.0),
-        x if x > 0.0 => x.min((CONTAINER_HALF_WIDTH - sprite_size / 2.0) - 1.0),
+        x if x < 0.0 => x.max((CONTAINER_WIDTH / 2.0 * -1.0 + sprite_size / 2.0) + 1.0),
+        x if x > 0.0 => x.min((CONTAINER_WIDTH / 2.0 - sprite_size / 2.0) - 1.0),
         _ => raw_x,
     }
 }

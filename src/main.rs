@@ -10,11 +10,12 @@ use game::GamePlugin;
 mod resources;
 use resources::{NextGenerator, SpawnTime};
 
-const SCREEN_WIDTH: f32 = 400.0;
-const SCREEN_HEIGHT: f32 = 800.0;
+mod constants;
+use constants::{SCREEN_HEIGHT, SCREEN_WIDTH};
 
 fn main() {
     App::new()
+        .insert_resource(ClearColor(Color::rgb(0.56, 1.0, 0.98)))
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "Suika".to_string(),
@@ -27,7 +28,7 @@ fn main() {
         .init_resource::<NextGenerator>()
         .add_plugins((
             RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0),
-            RapierDebugRenderPlugin::default(),
+            // RapierDebugRenderPlugin::default(),
         ))
         .add_plugins(SetupPlugin)
         .add_plugins(GamePlugin)
