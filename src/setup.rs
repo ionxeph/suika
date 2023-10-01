@@ -4,7 +4,7 @@ use bevy_rapier2d::prelude::*;
 use crate::{
     constants::{
         CONTAINER_BASE_OFFSET, CONTAINER_HEIGHT, CONTAINER_THICKNESS, CONTAINER_WIDTH, KNOWN_TYPES,
-        NEXT_PREVIEW_LABEL_SIZE, NEXT_PREVIEW_OFFSET, SCREEN_HEIGHT,
+        NEXT_PREVIEW_LABEL_SIZE, NEXT_PREVIEW_OFFSET, SCREEN_HEIGHT, SCREEN_WIDTH,
     },
     resources::NextGenerator,
 };
@@ -13,7 +13,15 @@ pub struct SetupPlugin;
 
 impl Plugin for SetupPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, (setup_container, setup_camera, setup_preview));
+        app.add_systems(
+            Startup,
+            (
+                setup_container,
+                setup_app_boundaries,
+                setup_camera,
+                setup_preview,
+            ),
+        );
     }
 }
 
@@ -76,6 +84,28 @@ fn setup_container(mut commands: Commands) {
             ),
             ..default()
         },
+    ));
+}
+
+fn setup_app_boundaries(mut commands: Commands) {
+    commands.spawn((
+        Collider::cuboid(SCREEN_WIDTH / 2.0, 1.0),
+        TransformBundle::from(Transform::from_xyz(0.0, -SCREEN_HEIGHT / 2.0, 0.0)),
+    ));
+
+    commands.spawn((
+        Collider::cuboid(SCREEN_WIDTH / 2.0, 1.0),
+        TransformBundle::from(Transform::from_xyz(0.0, SCREEN_HEIGHT / 2.0, 0.0)),
+    ));
+
+    commands.spawn((
+        Collider::cuboid(1.0, SCREEN_HEIGHT / 2.0),
+        TransformBundle::from(Transform::from_xyz(-SCREEN_WIDTH / 2.0, 0.0, 0.0)),
+    ));
+
+    commands.spawn((
+        Collider::cuboid(1.0, SCREEN_HEIGHT / 2.0),
+        TransformBundle::from(Transform::from_xyz(SCREEN_WIDTH / 2.0, 0.0, 0.0)),
     ));
 }
 
