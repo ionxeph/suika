@@ -30,6 +30,21 @@ impl SpawnTime {
     }
 }
 
+#[derive(Resource, Default)]
+pub struct ScoreTracker {
+    pub score: u32,
+}
+
+impl ScoreTracker {
+    pub fn add_score(&mut self, s: u32) {
+        self.score += s;
+    }
+
+    pub fn reset(&mut self) {
+        self.score = 0;
+    }
+}
+
 #[derive(Resource)]
 pub struct NextGenerator {
     pub current_fruit: Fruit,
@@ -41,16 +56,18 @@ impl Default for NextGenerator {
     fn default() -> Self {
         let mut rng = rand::thread_rng();
         let (cur, next) = (rng.gen_range(0..5), rng.gen_range(0..5));
-        let (cur_size, image_file_name) = KNOWN_TYPES[cur];
-        let (next_size, next_image_file_name) = KNOWN_TYPES[next];
+        let (cur_size, image_file_name, cur_score) = KNOWN_TYPES[cur];
+        let (next_size, next_image_file_name, next_score) = KNOWN_TYPES[next];
         Self {
             current_fruit: Fruit {
                 size: cur_size,
                 image_file_name: String::from(image_file_name),
+                score: cur_score,
             },
             next_fruit: Fruit {
                 size: next_size,
                 image_file_name: String::from(next_image_file_name),
+                score: next_score,
             },
             should_update_previews: false,
         }
@@ -62,10 +79,11 @@ impl NextGenerator {
         let mut rng = rand::thread_rng();
         let next = rng.gen_range(0..5);
         self.current_fruit = self.next_fruit.clone();
-        let (size, image_file_name) = KNOWN_TYPES[next];
+        let (size, image_file_name, score) = KNOWN_TYPES[next];
         self.next_fruit = Fruit {
             size,
             image_file_name: String::from(image_file_name),
+            score,
         };
         self.should_update_previews = true;
     }
@@ -75,10 +93,11 @@ impl NextGenerator {
     }
 }
 
-#[derive(Component, Debug)]
+#[derive(Component)]
 pub struct Fruit {
     pub size: f32,
     pub image_file_name: String,
+    pub score: u32,
 }
 
 impl Fruit {
@@ -86,6 +105,7 @@ impl Fruit {
         Fruit {
             size: self.size,
             image_file_name: self.image_file_name.clone(),
+            score: self.score,
         }
     }
 
@@ -93,11 +113,12 @@ impl Fruit {
         if self.size == KNOWN_TYPES[10].0 {
             return None;
         }
-        let (size, image_file_name) =
+        let (size, image_file_name, score) =
             KNOWN_TYPES[KNOWN_TYPES.iter().position(|s| s.0 == self.size).unwrap() + 1];
         Some(Fruit {
             size,
             image_file_name: String::from(image_file_name),
+            score,
         })
     }
 }

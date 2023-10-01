@@ -6,7 +6,7 @@ use crate::{
         CONTAINER_BASE_OFFSET, CONTAINER_HEIGHT, CONTAINER_THICKNESS, CONTAINER_WIDTH, KNOWN_TYPES,
         NEXT_PREVIEW_LABEL_SIZE, NEXT_PREVIEW_OFFSET, SCREEN_HEIGHT, SCREEN_WIDTH, SPAWN_HEIGHT,
     },
-    resources::{GameAlreadySetUp, NextGenerator},
+    resources::{GameAlreadySetUp, NextGenerator, ScoreTracker},
     AppState,
 };
 
@@ -17,7 +17,12 @@ impl Plugin for SetupPlugin {
         app.add_systems(Startup, setup_camera)
             .add_systems(
                 OnEnter(AppState::InGame),
-                (setup_container, setup_app_boundaries, setup_merge_guide),
+                (
+                    setup_container,
+                    setup_app_boundaries,
+                    setup_merge_guide,
+                    setup_score,
+                ),
             )
             // unlike the other setups, previews are thrown out in GameOver state, and recreated after starting over
             .add_systems(OnEnter(AppState::InGame), setup_preview)
@@ -37,6 +42,9 @@ pub struct NextPreview;
 
 #[derive(Component)]
 pub struct PreviewPart;
+
+#[derive(Component)]
+pub struct Score;
 
 fn setup_container(mut commands: Commands, game_already_set_up: Res<GameAlreadySetUp>) {
     if game_already_set_up.is_set_up {
@@ -137,7 +145,7 @@ fn setup_merge_guide(
     };
 
     let mut offset: f32 = 0.0;
-    for (size, file_name) in KNOWN_TYPES.into_iter() {
+    for (size, file_name, _) in KNOWN_TYPES.into_iter() {
         let texture_handle = asset_server.load(file_name);
         let pos_x =
             CONTAINER_WIDTH / 2.0 + NEXT_PREVIEW_OFFSET + normalize_size(KNOWN_TYPES[10].0) + 10.0;
@@ -154,6 +162,49 @@ fn setup_merge_guide(
             ..default()
         },));
     }
+}
+
+fn setup_score(
+    mut commands: Commands,
+    game_already_set_up: Res<GameAlreadySetUp>,
+    score_tracker: Res<ScoreTracker>,
+) {
+    if game_already_set_up.is_set_up {
+        return;
+    }
+
+    commands
+        .spawn((SpriteBundle {
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(100.0, 50.0)),
+                color: Color::rgb(0.56, 1.0, 0.98),
+                ..default()
+            },
+            transform: Transform::from_xyz(
+                -CONTAINER_WIDTH / 2.0 - NEXT_PREVIEW_OFFSET,
+                CONTAINER_HEIGHT / 2.0 + KNOWN_TYPES[5].0 / 2.0 + NEXT_PREVIEW_LABEL_SIZE / 2.0,
+                0.0,
+            ),
+            ..default()
+        },))
+        .with_children(|builder| {
+            builder.spawn((
+                Score,
+                Text2dBundle {
+                    text: Text::from_section(
+                        score_tracker.score.to_string(),
+                        TextStyle {
+                            font_size: NEXT_PREVIEW_LABEL_SIZE,
+                            color: Color::FUCHSIA,
+                            ..default()
+                        },
+                    )
+                    .with_alignment(TextAlignment::Center),
+                    transform: Transform::from_translation(Vec3::Z),
+                    ..default()
+                },
+            ));
+        });
 }
 
 fn setup_preview(

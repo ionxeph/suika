@@ -9,8 +9,7 @@ pub const SPAWN_HEIGHT: f32 = -SCREEN_HEIGHT / 2.0
     + CONTAINER_BASE_OFFSET
     + CONTAINER_HEIGHT
     + CONTAINER_THICKNESS
-    + 40.0
-    + KNOWN_TYPES[5].0 / 2.0;
+    + KNOWN_TYPES[10].0 / 2.0;
 pub const NEXT_PREVIEW_OFFSET: f32 = 100.0;
 pub const NEXT_PREVIEW_LABEL_SIZE: f32 = 40.0;
 
@@ -22,16 +21,16 @@ pub const MAX_Y_VELOCITY_BEFORE_CLAMP: f32 = 50.0;
 pub const MAX_X_VELOCITY_BEFORE_CLAMP: f32 = 50.0;
 
 pub const CLICK_DELAY: f32 = 0.8;
-pub const KNOWN_TYPES: [(f32, &str); 11] = [
-    (26.0, "gura.png"),
-    (40.0, "aqua.png"),
-    (54.0, "hakos.png"),
-    (60.0, "towa.png"),
-    (77.0, "kobo.png"),
-    (92.0, "ayame.png"),
-    (97.0, "koyori.png"),
-    (129.0, "fubuki.png"),
-    (154.0, "mio.png"),
-    (174.0, "ollie.png"),
-    (204.0, "sana.png"),
+pub const KNOWN_TYPES: [(f32, &str, u32); 11] = [
+    (26.0, "gura.png", 0),
+    (40.0, "aqua.png", 1),
+    (54.0, "hakos.png", 3),
+    (60.0, "towa.png", 6),
+    (77.0, "kobo.png", 10),
+    (92.0, "ayame.png", 15),
+    (97.0, "koyori.png", 21),
+    (129.0, "fubuki.png", 28),
+    (154.0, "mio.png", 36),
+    (174.0, "ollie.png", 45),
+    (204.0, "sana.png", 55),
 ];

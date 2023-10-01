@@ -11,7 +11,7 @@ mod game;
 use game::GamePlugin;
 
 mod resources;
-use resources::{GameAlreadySetUp, NextGenerator, SpawnTime};
+use resources::{GameAlreadySetUp, NextGenerator, ScoreTracker, SpawnTime};
 
 mod constants;
 use constants::{SCREEN_HEIGHT, SCREEN_WIDTH};
@@ -45,6 +45,7 @@ fn main() {
         .init_resource::<SpawnTime>()
         .init_resource::<NextGenerator>()
         .init_resource::<GameAlreadySetUp>()
+        .init_resource::<ScoreTracker>()
         .add_plugins(SetupPlugin)
         .add_plugins(MenuPlugin)
         .add_plugins(GamePlugin)

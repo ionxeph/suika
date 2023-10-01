@@ -2,7 +2,8 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_rapier2d::prelude::RigidBody;
 
 use crate::constants::SCREEN_HEIGHT;
-use crate::resources::Fruit;
+use crate::resources::{Fruit, GameAlreadySetUp, ScoreTracker};
+use crate::setup::Score;
 use crate::{setup::MainCamera, AppState};
 
 use crate::helpers::get_mouse_pos;
@@ -50,7 +51,12 @@ fn cleanup_menu(mut commands: Commands, menu_items: Query<Entity, With<MenuItem>
     }
 }
 
-fn setup_game_over(mut commands: Commands, mut fruits: Query<&mut RigidBody, With<Fruit>>) {
+fn setup_game_over(
+    mut commands: Commands,
+    mut game_already_set_up: ResMut<GameAlreadySetUp>,
+    mut fruits: Query<&mut RigidBody, With<Fruit>>,
+) {
+    game_already_set_up.is_set_up = true;
     commands
         .spawn((
             MenuItem,
@@ -114,7 +120,15 @@ fn setup_game_over(mut commands: Commands, mut fruits: Query<&mut RigidBody, Wit
     }
 }
 
-fn cleanup_fruits(mut commands: Commands, fruits: Query<Entity, With<Fruit>>) {
+fn cleanup_fruits(
+    mut commands: Commands,
+    mut score_tracker: ResMut<ScoreTracker>,
+    fruits: Query<Entity, With<Fruit>>,
+    mut score_query: Query<&mut Text, With<Score>>,
+) {
+    score_tracker.reset();
+    let mut score = score_query.single_mut();
+    score.sections[0].value = score_tracker.score.to_string();
     for fruit in fruits.iter() {
         commands.entity(fruit).despawn_recursive();
     }

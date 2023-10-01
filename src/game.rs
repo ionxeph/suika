@@ -2,8 +2,8 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_rapier2d::prelude::*;
 
 use crate::helpers::get_mouse_pos;
-use crate::resources::{Fruit, NextGenerator, SpawnTime};
-use crate::setup::{MainCamera, NextPreview, Preview};
+use crate::resources::{Fruit, NextGenerator, ScoreTracker, SpawnTime};
+use crate::setup::{MainCamera, NextPreview, Preview, Score};
 use crate::AppState;
 
 use crate::constants::{
@@ -31,7 +31,7 @@ impl Plugin for GamePlugin {
 
 fn modify_body_translation(
     positions: Query<&Transform, With<Fruit>>,
-    mut next_state: ResMut<NextState<AppState>>,
+    mut next_state: ResMut<NextState<AppState>>
 ) {
     for position in positions.iter() {
         if position.translation.x > CONTAINER_WIDTH / 2.0 + CONTAINER_THICKNESS
@@ -121,7 +121,9 @@ fn mouse_click_system(
 fn collision_system(
     mut collisions: EventReader<CollisionEvent>,
     asset_server: Res<AssetServer>,
+    mut score_tracker: ResMut<ScoreTracker>,
     fruits: Query<(&Fruit, &mut Transform)>,
+    mut score_query: Query<&mut Text, With<Score>>,
     mut commands: Commands,
 ) {
     for collision in collisions.iter() {
@@ -136,7 +138,9 @@ fn collision_system(
                     // in this case, both are despawned, and no new fruits created
                     if let Some(fruit) = fruit_a.merge() {
                         let texture_handle = asset_server.load(&fruit.image_file_name);
-
+                        score_tracker.add_score(fruit.score);
+                        let mut score = score_query.single_mut();
+                        score.sections[0].value = score_tracker.score.to_string();
                         commands.spawn(create_fruit_bundle(texture_handle, new_x, new_y, fruit));
                     }
 
