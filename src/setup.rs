@@ -17,7 +17,7 @@ impl Plugin for SetupPlugin {
         app.add_systems(Startup, setup_camera)
             .add_systems(
                 OnEnter(AppState::InGame),
-                (setup_container, setup_app_boundaries),
+                (setup_container, setup_app_boundaries, setup_merge_guide),
             )
             // unlike the other setups, previews are thrown out in GameOver state, and recreated after starting over
             .add_systems(OnEnter(AppState::InGame), setup_preview)
@@ -118,6 +118,41 @@ fn setup_app_boundaries(mut commands: Commands, game_already_set_up: Res<GameAlr
         Collider::cuboid(1.0, SCREEN_HEIGHT / 2.0),
         TransformBundle::from(Transform::from_xyz(SCREEN_WIDTH / 2.0, 0.0, 0.0)),
     ));
+}
+
+fn setup_merge_guide(
+    mut commands: Commands,
+    game_already_set_up: Res<GameAlreadySetUp>,
+    asset_server: Res<AssetServer>,
+) {
+    if game_already_set_up.is_set_up {
+        return;
+    }
+
+    let normalize_size = |size: f32| -> f32 {
+        let max = 204.0;
+        let min = 26.0;
+        size.max((size - min) / (max - min) * size)
+            .min(size / 2.5 + 20.0)
+    };
+
+    let mut offset: f32 = 0.0;
+    for (size, file_name) in KNOWN_TYPES.into_iter() {
+        let texture_handle = asset_server.load(file_name);
+        let pos_x = CONTAINER_WIDTH / 2.0 + NEXT_PREVIEW_OFFSET + KNOWN_TYPES[10].0;
+        let pos_y = (-SCREEN_HEIGHT / 2.0 + CONTAINER_BASE_OFFSET) + offset;
+        let normalized_size = normalize_size(size);
+        offset += normalized_size + 10.0;
+        commands.spawn((SpriteBundle {
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(1.0, 1.0) * normalized_size),
+                ..default()
+            },
+            texture: texture_handle,
+            transform: Transform::from_xyz(pos_x, pos_y, 0.0),
+            ..default()
+        },));
+    }
 }
 
 fn setup_preview(
