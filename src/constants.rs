@@ -1,4 +1,4 @@
-pub const SCREEN_WIDTH: f32 = 1200.0;
+pub const SCREEN_WIDTH: f32 = 1000.0;
 pub const SCREEN_HEIGHT: f32 = 800.0;
 
 pub const CONTAINER_WIDTH: f32 = 300.0;

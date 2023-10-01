@@ -139,7 +139,8 @@ fn setup_merge_guide(
     let mut offset: f32 = 0.0;
     for (size, file_name) in KNOWN_TYPES.into_iter() {
         let texture_handle = asset_server.load(file_name);
-        let pos_x = CONTAINER_WIDTH / 2.0 + NEXT_PREVIEW_OFFSET + KNOWN_TYPES[10].0;
+        let pos_x =
+            CONTAINER_WIDTH / 2.0 + NEXT_PREVIEW_OFFSET + normalize_size(KNOWN_TYPES[10].0) + 10.0;
         let pos_y = (-SCREEN_HEIGHT / 2.0 + CONTAINER_BASE_OFFSET) + offset;
         let normalized_size = normalize_size(size);
         offset += normalized_size + 10.0;

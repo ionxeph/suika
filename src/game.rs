@@ -168,7 +168,6 @@ fn create_fruit_bundle(
     // adding one pixel on either edge to prevent collision against wall on drop
     let size = fruit.size;
     let pos_x_in_bounds = pos_x_in_bounds(pos_x, size);
-    let pos_y_in_bounds = pos_y; // TODO: make sure this is in bounds
     (
         fruit,
         RigidBody::Dynamic,
@@ -178,7 +177,7 @@ fn create_fruit_bundle(
                 ..default()
             },
             texture: texture_handle,
-            transform: Transform::from_xyz(pos_x_in_bounds, pos_y_in_bounds, 0.0),
+            transform: Transform::from_xyz(pos_x_in_bounds, pos_y, 0.0),
             ..default()
         },
         Collider::ball(size / 2.0),
