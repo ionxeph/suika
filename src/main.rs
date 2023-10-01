@@ -5,7 +5,10 @@ mod setup;
 use setup::SetupPlugin;
 
 mod game;
-use game::{GamePlugin, SpawnTime};
+use game::GamePlugin;
+
+mod resources;
+use resources::SpawnTime;
 
 const SCREEN_WIDTH: f32 = 400.0;
 const SCREEN_HEIGHT: f32 = 800.0;

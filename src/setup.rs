@@ -48,7 +48,7 @@ fn setup_preview(mut commands: Commands, asset_server: Res<AssetServer>) {
                 ..default()
             },
             texture: texture_handle.clone(),
-            transform: Transform::from_xyz(0.0, 0.0, 0.0),
+            transform: Transform::from_xyz(0.0, 250.0, 0.0),
             ..default()
         },
     ));
