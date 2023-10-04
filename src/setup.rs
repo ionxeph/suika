@@ -3,8 +3,10 @@ use bevy_rapier2d::prelude::*;
 
 use crate::{
     constants::{
-        CONTAINER_BASE_OFFSET, CONTAINER_HEIGHT, CONTAINER_THICKNESS, CONTAINER_WIDTH, KNOWN_TYPES,
-        NEXT_PREVIEW_LABEL_SIZE, NEXT_PREVIEW_OFFSET, SCREEN_HEIGHT, SCREEN_WIDTH, SPAWN_HEIGHT,
+        BG_COLOR, CONTAINER_BASE_OFFSET, CONTAINER_COLOR, CONTAINER_HEIGHT, CONTAINER_THICKNESS,
+        CONTAINER_WIDTH, KNOWN_TYPES, NEXT_BG_COLOR, NEXT_PREVIEW_LABEL_SIZE, NEXT_PREVIEW_OFFSET,
+        PREVIEW_HINT_COLOR, SCORE_TEXT_COLOR, SCREEN_HEIGHT, SCREEN_WIDTH, SPAWN_HEIGHT,
+        SPAWN_OFFSET, TEXT_COLOR,
     },
     resources::{GameAlreadySetUp, NextGenerator, ScoreTracker},
     AppState,
@@ -14,15 +16,10 @@ pub struct SetupPlugin;
 
 impl Plugin for SetupPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, setup_camera)
+        app.add_systems(Startup, (setup_camera, setup_app_boundaries))
             .add_systems(
                 OnEnter(AppState::InGame),
-                (
-                    setup_container,
-                    setup_app_boundaries,
-                    setup_merge_guide,
-                    setup_score,
-                ),
+                (setup_container, setup_merge_guide, setup_score),
             )
             // unlike the other setups, previews are thrown out in GameOver state, and recreated after starting over
             .add_systems(OnEnter(AppState::InGame), setup_preview)
@@ -58,7 +55,7 @@ fn setup_container(mut commands: Commands, game_already_set_up: Res<GameAlreadyS
         SpriteBundle {
             sprite: Sprite {
                 custom_size: Some(Vec2::new(CONTAINER_WIDTH, CONTAINER_THICKNESS)),
-                color: Color::rgb(0.0, 0.0, 0.55),
+                color: CONTAINER_COLOR,
                 ..default()
             },
             transform: Transform::from_xyz(0.0, container_base, 0.0),
@@ -73,7 +70,7 @@ fn setup_container(mut commands: Commands, game_already_set_up: Res<GameAlreadyS
         SpriteBundle {
             sprite: Sprite {
                 custom_size: Some(Vec2::new(CONTAINER_THICKNESS, wall_height)),
-                color: Color::rgb(0.0, 0.0, 0.55),
+                color: CONTAINER_COLOR,
                 ..default()
             },
             transform: Transform::from_xyz(
@@ -89,7 +86,7 @@ fn setup_container(mut commands: Commands, game_already_set_up: Res<GameAlreadyS
         SpriteBundle {
             sprite: Sprite {
                 custom_size: Some(Vec2::new(CONTAINER_THICKNESS, wall_height)),
-                color: Color::rgb(0.0, 0.0, 0.55),
+                color: CONTAINER_COLOR,
                 ..default()
             },
             transform: Transform::from_xyz(
@@ -141,14 +138,14 @@ fn setup_merge_guide(
         let max = 204.0;
         let min = 26.0;
         size.max((size - min) / (max - min) * size)
-            .min(size / 2.5 + 20.0)
+            .min(size / 3.5 + 30.0)
     };
 
     let mut offset: f32 = 0.0;
     for (size, file_name, _) in KNOWN_TYPES.into_iter() {
+        print!("{}, ", size * 1.2);
         let texture_handle = asset_server.load(file_name);
-        let pos_x =
-            CONTAINER_WIDTH / 2.0 + NEXT_PREVIEW_OFFSET + normalize_size(KNOWN_TYPES[10].0) + 10.0;
+        let pos_x = -SCREEN_WIDTH / 2.0 + 60.0;
         let pos_y = (-SCREEN_HEIGHT / 2.0 + CONTAINER_BASE_OFFSET) + offset;
         let normalized_size = normalize_size(size);
         offset += normalized_size + 10.0;
@@ -177,7 +174,7 @@ fn setup_score(
         .spawn((SpriteBundle {
             sprite: Sprite {
                 custom_size: Some(Vec2::new(100.0, 50.0)),
-                color: Color::rgb(0.56, 1.0, 0.98),
+                color: BG_COLOR,
                 ..default()
             },
             transform: Transform::from_xyz(
@@ -195,7 +192,7 @@ fn setup_score(
                         score_tracker.score.to_string(),
                         TextStyle {
                             font_size: NEXT_PREVIEW_LABEL_SIZE,
-                            color: Color::FUCHSIA,
+                            color: SCORE_TEXT_COLOR,
                             ..default()
                         },
                     )
@@ -214,19 +211,35 @@ fn setup_preview(
 ) {
     let file_name = &next_generator.current_fruit.image_file_name;
     let texture_handle = asset_server.load(file_name);
-    commands.spawn((
-        Preview,
-        PreviewPart,
-        SpriteBundle {
-            sprite: Sprite {
-                custom_size: Some(Vec2::new(1.0, 1.0) * next_generator.current_fruit.size),
+    commands
+        .spawn((
+            Preview,
+            PreviewPart,
+            SpriteBundle {
+                sprite: Sprite {
+                    custom_size: Some(Vec2::new(1.0, 1.0) * next_generator.current_fruit.size),
+                    ..default()
+                },
+                texture: texture_handle,
+                transform: Transform::from_xyz(0.0, SPAWN_HEIGHT, 0.0),
                 ..default()
             },
-            texture: texture_handle,
-            transform: Transform::from_xyz(0.0, SPAWN_HEIGHT, 0.0),
-            ..default()
-        },
-    ));
+        ))
+        .with_children(|builder| {
+            let hint = SPAWN_OFFSET - 45.0;
+            builder.spawn((
+                PreviewPart,
+                SpriteBundle {
+                    sprite: Sprite {
+                        custom_size: Some(Vec2::new(5.0, hint)),
+                        color: PREVIEW_HINT_COLOR,
+                        ..default()
+                    },
+                    transform: Transform::from_xyz(0.0, -hint / 2.0, -1.0),
+                    ..default()
+                },
+            ));
+        });
 
     let file_name = &next_generator.next_fruit.image_file_name;
     let texture_handle = asset_server.load(file_name);
@@ -253,8 +266,8 @@ fn setup_preview(
             PreviewPart,
             SpriteBundle {
                 sprite: Sprite {
-                    custom_size: Some(Vec2::new(100.0, 50.0)),
-                    color: Color::rgb(0.56, 1.0, 0.98),
+                    custom_size: Some(Vec2::new(10.0, 10.0)),
+                    color: NEXT_BG_COLOR,
                     ..default()
                 },
                 transform: Transform::from_xyz(
@@ -271,7 +284,7 @@ fn setup_preview(
                     "NEXT",
                     TextStyle {
                         font_size: NEXT_PREVIEW_LABEL_SIZE,
-                        color: Color::BLACK,
+                        color: TEXT_COLOR,
                         ..default()
                     },
                 )
@@ -280,6 +293,23 @@ fn setup_preview(
                 ..default()
             });
         });
+
+    commands.spawn((
+        PreviewPart,
+        SpriteBundle {
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(150.0, 230.0)),
+                color: NEXT_BG_COLOR,
+                ..default()
+            },
+            transform: Transform::from_xyz(
+                CONTAINER_WIDTH / 2.0 + NEXT_PREVIEW_OFFSET,
+                CONTAINER_HEIGHT / 2.0 + NEXT_PREVIEW_LABEL_SIZE / 2.0,
+                -1.0,
+            ),
+            ..default()
+        },
+    ));
 }
 
 fn cleanup_preview(mut commands: Commands, preview_parts: Query<Entity, With<PreviewPart>>) {

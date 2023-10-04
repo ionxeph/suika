@@ -1,7 +1,7 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_rapier2d::prelude::RigidBody;
 
-use crate::constants::SCREEN_HEIGHT;
+use crate::constants::{BG_COLOR, SCREEN_HEIGHT, TEXT_COLOR};
 use crate::resources::{Fruit, GameAlreadySetUp, ScoreTracker};
 use crate::setup::Score;
 use crate::{setup::MainCamera, AppState};
@@ -12,7 +12,7 @@ pub struct MenuPlugin;
 
 impl Plugin for MenuPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(AppState::StartMenu), setup_menu)
+        app.add_systems(Startup, setup_menu)
             .add_systems(Update, menu_system.run_if(in_state(AppState::StartMenu)))
             .add_systems(OnExit(AppState::StartMenu), cleanup_menu)
             .add_systems(OnEnter(AppState::GameOverMenu), setup_game_over)
@@ -35,7 +35,7 @@ fn setup_menu(mut commands: Commands) {
                 "click anywhere to begin",
                 TextStyle {
                     font_size: 30.0,
-                    color: Color::BLACK,
+                    color: TEXT_COLOR,
                     ..default()
                 },
             )
@@ -63,7 +63,7 @@ fn setup_game_over(
             SpriteBundle {
                 sprite: Sprite {
                     custom_size: Some(Vec2::new(50.0, 50.0)),
-                    color: Color::rgb(0.56, 1.0, 0.98),
+                    color: BG_COLOR,
                     ..default()
                 },
                 transform: Transform::from_xyz(0.0, SCREEN_HEIGHT / 2.0 - 100.0, 0.0),
@@ -76,7 +76,7 @@ fn setup_game_over(
                     "click anywhere to restart",
                     TextStyle {
                         font_size: 30.0,
-                        color: Color::BLACK,
+                        color: TEXT_COLOR,
                         ..default()
                     },
                 )
@@ -92,7 +92,7 @@ fn setup_game_over(
             SpriteBundle {
                 sprite: Sprite {
                     custom_size: Some(Vec2::new(50.0, 50.0)),
-                    color: Color::rgb(0.56, 1.0, 0.98),
+                    color: BG_COLOR,
                     ..default()
                 },
                 transform: Transform::from_xyz(0.0, SCREEN_HEIGHT / 2.0 - 200.0, 0.0),
@@ -105,7 +105,7 @@ fn setup_game_over(
                     "GAME OVER",
                     TextStyle {
                         font_size: 50.0,
-                        color: Color::BLACK,
+                        color: TEXT_COLOR,
                         ..default()
                     },
                 )

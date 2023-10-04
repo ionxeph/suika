@@ -14,7 +14,7 @@ mod resources;
 use resources::{GameAlreadySetUp, NextGenerator, ScoreTracker, SpawnTime};
 
 mod constants;
-use constants::{SCREEN_HEIGHT, SCREEN_WIDTH};
+use constants::{BG_COLOR, SCREEN_HEIGHT, SCREEN_WIDTH};
 
 mod helpers;
 
@@ -29,11 +29,13 @@ pub enum AppState {
 fn main() {
     App::new()
         .add_state::<AppState>()
-        .insert_resource(ClearColor(Color::rgb(0.56, 1.0, 0.98)))
+        .insert_resource(ClearColor(BG_COLOR))
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "Suika".to_string(),
                 resolution: (SCREEN_WIDTH, SCREEN_HEIGHT).into(),
+                fit_canvas_to_parent: true,
+                prevent_default_event_handling: false,
                 ..default()
             }),
             ..default()
