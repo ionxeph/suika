@@ -23,6 +23,8 @@ use game_over::check_game_over;
 mod physics_manipulations;
 use physics_manipulations::{clamp_upward_velocity, manipulate_mass, mark_fruits_as_alive};
 
+use self::collision::merge_fruits;
+
 pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
@@ -33,6 +35,7 @@ impl Plugin for GamePlugin {
                 mouse_click,
                 update_preview,
                 collision,
+                merge_fruits,
                 clamp_upward_velocity,
                 mark_fruits_as_alive,
                 manipulate_mass,
