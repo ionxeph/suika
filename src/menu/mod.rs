@@ -3,8 +3,8 @@ use bevy_rapier2d::prelude::RigidBody;
 
 use crate::constants::{BG_COLOR, SCREEN_HEIGHT, TEXT_COLOR};
 use crate::resources::{Fruit, GameAlreadySetUp, ScoreTracker};
-use crate::setup::Score;
-use crate::{setup::MainCamera, AppState};
+use crate::setup::{MainCamera, Score};
+use crate::AppState;
 
 use crate::helpers::get_mouse_pos;
 

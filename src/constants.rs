@@ -15,7 +15,7 @@ pub const GAME_OVER_HEIGHT: f32 =
 pub const NEXT_PREVIEW_OFFSET: f32 = 180.0;
 pub const NEXT_PREVIEW_LABEL_SIZE: f32 = 40.0;
 
-pub const GRAVITY: f32 = 3.0;
+pub const GRAVITY: f32 = 3.5;
 pub const RESTITUATION: f32 = 0.005;
 pub const MASS: f32 = 5.0;
 pub const MAX_SPEED: f32 = 100.0;
