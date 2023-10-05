@@ -7,6 +7,10 @@ use crate::setup::{MainCamera, Score};
 use crate::{AppState, Fruit};
 
 use crate::helpers::get_mouse_pos;
+
+mod physics_slider;
+use physics_slider::{handle_slider_change, setup};
+
 pub struct MenuPlugin;
 
 impl Plugin for MenuPlugin {
@@ -16,6 +20,11 @@ impl Plugin for MenuPlugin {
             .add_systems(OnExit(AppState::StartMenu), cleanup_menu)
             .add_systems(OnEnter(AppState::GameOverMenu), setup_game_over)
             .add_systems(Update, menu_system.run_if(in_state(AppState::GameOverMenu)))
+            .add_systems(OnEnter(AppState::InGame), setup)
+            .add_systems(
+                Update,
+                handle_slider_change.run_if(in_state(AppState::InGame)),
+            )
             .add_systems(
                 OnExit(AppState::GameOverMenu),
                 (cleanup_menu, cleanup_fruits),

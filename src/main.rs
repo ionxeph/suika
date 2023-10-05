@@ -74,7 +74,7 @@ fn main() {
         }))
         .add_plugins((
             RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0),
-            // RapierDebugRenderPlugin::default(),
+            RapierDebugRenderPlugin::default(),
         ))
         .init_resource::<SpawnTime>()
         .init_resource::<NextGenerator>()

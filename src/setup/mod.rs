@@ -48,6 +48,7 @@ fn setup_container(mut commands: Commands, game_already_set_up: Res<GameAlreadyS
         return;
     }
 
+    // TODO: add a thin line at the top indicating game over point
     let container_base = -SCREEN_HEIGHT / 2.0 + CONTAINER_BASE_OFFSET;
     /* Create the container. */
     commands.spawn((
@@ -171,7 +172,7 @@ fn setup_score(
     }
 
     commands
-        .spawn((SpriteBundle {
+        .spawn(SpriteBundle {
             sprite: Sprite {
                 custom_size: Some(Vec2::new(100.0, 50.0)),
                 color: TRANSPARENT,
@@ -183,7 +184,7 @@ fn setup_score(
                 0.0,
             ),
             ..default()
-        },))
+        })
         .with_children(|builder| {
             builder.spawn((
                 Score,
