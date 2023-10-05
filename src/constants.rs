@@ -16,8 +16,9 @@ pub const NEXT_PREVIEW_OFFSET: f32 = 180.0;
 pub const NEXT_PREVIEW_LABEL_SIZE: f32 = 40.0;
 
 pub const GRAVITY: f32 = 3.5;
-pub const RESTITUATION: f32 = 0.005;
+pub const RESTITUATION: f32 = 0.00000001;
 pub const MASS: f32 = 5.0;
+pub const ALIVE_MASS: f32 = 0.1;
 pub const MAX_SPEED: f32 = 100.0;
 pub const MAX_Y_VELOCITY_BEFORE_CLAMP: f32 = 50.0;
 pub const MAX_X_VELOCITY_BEFORE_CLAMP: f32 = 50.0;

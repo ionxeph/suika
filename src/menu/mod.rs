@@ -1,11 +1,10 @@
-
 use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_rapier2d::prelude::RigidBody;
 
 use crate::constants::{SCREEN_HEIGHT, TEXT_COLOR, TRANSPARENT};
-use crate::resources::{Fruit, GameAlreadySetUp, ScoreTracker};
+use crate::resources::{GameAlreadySetUp, ScoreTracker};
 use crate::setup::{MainCamera, Score};
-use crate::AppState;
+use crate::{AppState, Fruit};
 
 use crate::helpers::get_mouse_pos;
 pub struct MenuPlugin;
@@ -24,6 +23,7 @@ impl Plugin for MenuPlugin {
     }
 }
 
+// TODO: add a slider to adjust physics
 #[derive(Component)]
 pub struct MenuItem;
 

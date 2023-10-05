@@ -1,7 +1,10 @@
 use bevy::prelude::*;
 use rand::prelude::*;
 
-use crate::constants::{CLICK_DELAY, KNOWN_TYPES};
+use crate::{
+    constants::{CLICK_DELAY, KNOWN_TYPES},
+    Fruit,
+};
 
 #[derive(Resource, Default)]
 pub struct GameAlreadySetUp {
@@ -90,35 +93,5 @@ impl NextGenerator {
 
     pub fn preview_updated(&mut self) {
         self.should_update_previews = false;
-    }
-}
-
-#[derive(Component)]
-pub struct Fruit {
-    pub size: f32,
-    pub image_file_name: String,
-    pub score: u32,
-}
-
-impl Fruit {
-    pub fn clone(&self) -> Fruit {
-        Fruit {
-            size: self.size,
-            image_file_name: self.image_file_name.clone(),
-            score: self.score,
-        }
-    }
-
-    pub fn merge(&self) -> Option<Fruit> {
-        if self.size == KNOWN_TYPES[10].0 {
-            return None;
-        }
-        let (size, image_file_name, score) =
-            KNOWN_TYPES[KNOWN_TYPES.iter().position(|s| s.0 == self.size).unwrap() + 1];
-        Some(Fruit {
-            size,
-            image_file_name: String::from(image_file_name),
-            score,
-        })
     }
 }

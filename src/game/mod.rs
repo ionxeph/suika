@@ -4,10 +4,9 @@ use bevy::prelude::*;
 use bevy::time::common_conditions::on_fixed_timer;
 use bevy_rapier2d::prelude::*;
 
-use crate::resources::Fruit;
-use crate::AppState;
+use crate::{AppState, Fruit};
 
-use crate::constants::{CONTAINER_WIDTH, GRAVITY, MASS, RESTITUATION};
+use crate::constants::{CONTAINER_WIDTH, GRAVITY, RESTITUATION};
 
 mod mouse_click;
 use mouse_click::mouse_click;
@@ -21,8 +20,8 @@ use collision::{collision, remove_used_fruits};
 mod game_over;
 use game_over::check_game_over;
 
-mod physics_restrictions;
-use physics_restrictions::clamp_upward_velocity;
+mod physics_manipulations;
+use physics_manipulations::{clamp_upward_velocity, manipulate_mass, mark_fruits_as_alive};
 
 pub struct GamePlugin;
 
@@ -35,6 +34,8 @@ impl Plugin for GamePlugin {
                 update_preview,
                 collision,
                 clamp_upward_velocity,
+                mark_fruits_as_alive,
+                manipulate_mass,
                 check_game_over,
             )
                 .run_if(in_state(AppState::InGame)),
@@ -52,6 +53,11 @@ impl Plugin for GamePlugin {
 #[derive(Component)]
 pub struct Alive;
 
+#[derive(Component)]
+pub struct TimeSinceSpawn {
+    pub timer: Timer,
+}
+
 pub fn create_fruit_bundle(
     texture_handle: Handle<Image>,
     pos_x: f32,
@@ -59,11 +65,11 @@ pub fn create_fruit_bundle(
     fruit: Fruit,
 ) -> (
     Fruit,
+    TimeSinceSpawn,
     RigidBody,
     SpriteBundle,
     Collider,
     GravityScale,
-    ColliderMassProperties,
     Restitution,
     ActiveEvents,
     Velocity,
@@ -74,6 +80,9 @@ pub fn create_fruit_bundle(
     let pos_x_in_bounds = pos_x_in_bounds(pos_x, size);
     (
         fruit,
+        TimeSinceSpawn {
+            timer: Timer::from_seconds(1.0, TimerMode::Once),
+        },
         RigidBody::Dynamic,
         SpriteBundle {
             sprite: Sprite {
@@ -86,7 +95,6 @@ pub fn create_fruit_bundle(
         },
         Collider::ball(size / 2.0),
         GravityScale(GRAVITY),
-        ColliderMassProperties::Mass(MASS),
         Restitution::coefficient(RESTITUATION),
         ActiveEvents::COLLISION_EVENTS,
         Velocity {

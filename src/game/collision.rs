@@ -1,10 +1,11 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::resources::{Fruit, ScoreTracker};
+use crate::constants::ALIVE_MASS;
 use crate::setup::Score;
+use crate::{resources::ScoreTracker, Fruit};
 
-use super::{create_fruit_bundle, Alive};
+use super::create_fruit_bundle;
 
 #[derive(Component)]
 pub struct MarkForDelete;
@@ -15,21 +16,10 @@ pub fn collision(
     mut score_tracker: ResMut<ScoreTracker>,
     fruits: Query<(&Fruit, &mut Transform)>,
     mut score_query: Query<&mut Text, With<Score>>,
-    mut not_alive_fruits: Query<(&Fruit, &mut AdditionalMassProperties), Without<Alive>>,
     mut commands: Commands,
 ) {
     for collision in collisions.iter() {
         if let CollisionEvent::Started(collider_a, collider_b, _) = collision {
-            // TODO: change this event away from collision and into a time-tracked event
-            if let Ok((_, mut mprops)) = not_alive_fruits.get_mut(*collider_a) {
-                *mprops = AdditionalMassProperties::Mass(0.001);
-                commands.entity(*collider_a).insert(Alive);
-            }
-            if let Ok((_, mut mprops)) = not_alive_fruits.get_mut(*collider_b) {
-                *mprops = AdditionalMassProperties::Mass(0.001);
-                commands.entity(*collider_a).insert(Alive);
-            }
-
             if let Ok([(fruit_a, transform_a), (fruit_b, transform_b)]) =
                 fruits.get_many([*collider_a, *collider_b])
             {
@@ -44,8 +34,11 @@ pub fn collision(
                         score_tracker.add_score(fruit.score);
                         let mut score = score_query.single_mut();
                         score.sections[0].value = score_tracker.score.to_string();
-                        commands.spawn(create_fruit_bundle(texture_handle, new_x, new_y, fruit));
+                        commands
+                            .spawn(create_fruit_bundle(texture_handle, new_x, new_y, fruit))
+                            .insert(AdditionalMassProperties::Mass(ALIVE_MASS));
                     }
+
                     commands
                         .entity(*collider_a)
                         .remove::<(RigidBody, SpriteBundle, Collider)>()

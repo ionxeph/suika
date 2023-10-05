@@ -1,10 +1,11 @@
 use bevy::{prelude::*, window::PrimaryWindow};
+use bevy_rapier2d::prelude::AdditionalMassProperties;
 
 use crate::helpers::get_mouse_pos;
 use crate::resources::{NextGenerator, SpawnTime};
 use crate::setup::MainCamera;
 
-use crate::constants::SPAWN_HEIGHT;
+use crate::constants::{MASS, SPAWN_HEIGHT};
 
 use super::create_fruit_bundle;
 
@@ -31,12 +32,14 @@ pub fn mouse_click(
             let next_fruit = next_generator.current_fruit.clone();
             next_generator.next(); // after spawning current, go to next
             let texture_handle = asset_server.load(&next_fruit.image_file_name);
-            commands.spawn(create_fruit_bundle(
-                texture_handle,
-                world_position[0],
-                SPAWN_HEIGHT,
-                next_fruit,
-            ));
+            commands
+                .spawn(create_fruit_bundle(
+                    texture_handle,
+                    world_position[0],
+                    SPAWN_HEIGHT,
+                    next_fruit,
+                ))
+                .insert(AdditionalMassProperties::Mass(MASS));
         }
     }
 }
