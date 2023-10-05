@@ -28,6 +28,7 @@ pub const CONTAINER_COLOR: Color = Color::rgb(0.0, 0.7059, 0.8471);
 pub const SCORE_TEXT_COLOR: Color = Color::rgb(0.0, 0.4667, 0.7137);
 pub const TEXT_COLOR: Color = Color::rgb(0.0118, 0.0157, 0.3686);
 pub const PREVIEW_HINT_COLOR: Color = Color::rgba(0.0118, 0.0157, 0.3686, 0.25);
+pub const TRANSPARENT: Color = Color::rgba(0.0, 0.0, 0.0, 0.0);
 
 pub const CLICK_DELAY: f32 = 0.8;
 pub const KNOWN_TYPES: [(f32, &str, u32); 11] = [

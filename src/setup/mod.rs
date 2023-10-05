@@ -3,10 +3,10 @@ use bevy_rapier2d::prelude::*;
 
 use crate::{
     constants::{
-        BG_COLOR, CONTAINER_BASE_OFFSET, CONTAINER_COLOR, CONTAINER_HEIGHT, CONTAINER_THICKNESS,
+        CONTAINER_BASE_OFFSET, CONTAINER_COLOR, CONTAINER_HEIGHT, CONTAINER_THICKNESS,
         CONTAINER_WIDTH, KNOWN_TYPES, NEXT_BG_COLOR, NEXT_PREVIEW_LABEL_SIZE, NEXT_PREVIEW_OFFSET,
         PREVIEW_HINT_COLOR, SCORE_TEXT_COLOR, SCREEN_HEIGHT, SCREEN_WIDTH, SPAWN_HEIGHT,
-        SPAWN_OFFSET, TEXT_COLOR,
+        SPAWN_OFFSET, TEXT_COLOR, TRANSPARENT,
     },
     resources::{GameAlreadySetUp, NextGenerator, ScoreTracker},
     AppState,
@@ -174,7 +174,7 @@ fn setup_score(
         .spawn((SpriteBundle {
             sprite: Sprite {
                 custom_size: Some(Vec2::new(100.0, 50.0)),
-                color: BG_COLOR,
+                color: TRANSPARENT,
                 ..default()
             },
             transform: Transform::from_xyz(
@@ -267,7 +267,7 @@ fn setup_preview(
             SpriteBundle {
                 sprite: Sprite {
                     custom_size: Some(Vec2::new(10.0, 10.0)),
-                    color: NEXT_BG_COLOR,
+                    color: TRANSPARENT,
                     ..default()
                 },
                 transform: Transform::from_xyz(

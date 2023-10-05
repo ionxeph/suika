@@ -1,13 +1,13 @@
+
 use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_rapier2d::prelude::RigidBody;
 
-use crate::constants::{BG_COLOR, SCREEN_HEIGHT, TEXT_COLOR};
+use crate::constants::{SCREEN_HEIGHT, TEXT_COLOR, TRANSPARENT};
 use crate::resources::{Fruit, GameAlreadySetUp, ScoreTracker};
 use crate::setup::{MainCamera, Score};
 use crate::AppState;
 
 use crate::helpers::get_mouse_pos;
-
 pub struct MenuPlugin;
 
 impl Plugin for MenuPlugin {
@@ -63,7 +63,7 @@ fn setup_game_over(
             SpriteBundle {
                 sprite: Sprite {
                     custom_size: Some(Vec2::new(50.0, 50.0)),
-                    color: BG_COLOR,
+                    color: TRANSPARENT,
                     ..default()
                 },
                 transform: Transform::from_xyz(0.0, SCREEN_HEIGHT / 2.0 - 100.0, 0.0),
@@ -92,7 +92,7 @@ fn setup_game_over(
             SpriteBundle {
                 sprite: Sprite {
                     custom_size: Some(Vec2::new(50.0, 50.0)),
-                    color: BG_COLOR,
+                    color: TRANSPARENT,
                     ..default()
                 },
                 transform: Transform::from_xyz(0.0, SCREEN_HEIGHT / 2.0 - 200.0, 0.0),
