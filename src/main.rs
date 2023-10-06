@@ -11,20 +11,12 @@ mod game;
 use game::GamePlugin;
 
 mod resources;
-use resources::{GameAlreadySetUp, NextGenerator, ScoreTracker, SpawnTime};
+use resources::{GameAlreadySetUp, MassSetting, NextGenerator, ScoreTracker, SpawnTime};
 
 mod constants;
-use constants::{BG_COLOR, SCREEN_HEIGHT, SCREEN_WIDTH};
+use constants::{BG_COLOR, KNOWN_TYPES, SCREEN_HEIGHT, SCREEN_WIDTH};
 
 mod helpers;
-
-#[derive(Debug, Clone, Eq, PartialEq, Hash, States, Default)]
-pub enum AppState {
-    #[default]
-    StartMenu,
-    InGame,
-    GameOverMenu,
-}
 
 fn main() {
     App::new()
@@ -48,8 +40,49 @@ fn main() {
         .init_resource::<NextGenerator>()
         .init_resource::<GameAlreadySetUp>()
         .init_resource::<ScoreTracker>()
+        .init_resource::<MassSetting>()
         .add_plugins(SetupPlugin)
         .add_plugins(MenuPlugin)
         .add_plugins(GamePlugin)
         .run();
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, States, Default)]
+pub enum AppState {
+    #[default]
+    StartMenu,
+    InGame,
+    GameOverMenu,
+}
+
+#[derive(Component)]
+pub struct Fruit {
+    pub size: f32,
+    pub image_file_name: String,
+    pub score: u32,
+}
+
+impl Fruit {
+    pub fn merge(&self) -> Option<Fruit> {
+        if self.size == KNOWN_TYPES[10].0 {
+            return None;
+        }
+        let (size, image_file_name, score) =
+            KNOWN_TYPES[KNOWN_TYPES.iter().position(|s| s.0 == self.size).unwrap() + 1];
+        Some(Fruit {
+            size,
+            image_file_name: String::from(image_file_name),
+            score,
+        })
+    }
+}
+
+impl Clone for Fruit {
+    fn clone(&self) -> Fruit {
+        Fruit {
+            size: self.size,
+            image_file_name: self.image_file_name.clone(),
+            score: self.score,
+        }
+    }
 }

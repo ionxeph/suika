@@ -3,10 +3,10 @@ use bevy_rapier2d::prelude::*;
 
 use crate::{
     constants::{
-        BG_COLOR, CONTAINER_BASE_OFFSET, CONTAINER_COLOR, CONTAINER_HEIGHT, CONTAINER_THICKNESS,
-        CONTAINER_WIDTH, KNOWN_TYPES, NEXT_BG_COLOR, NEXT_PREVIEW_LABEL_SIZE, NEXT_PREVIEW_OFFSET,
-        PREVIEW_HINT_COLOR, SCORE_TEXT_COLOR, SCREEN_HEIGHT, SCREEN_WIDTH, SPAWN_HEIGHT,
-        SPAWN_OFFSET, TEXT_COLOR,
+        CONTAINER_BASE_OFFSET, CONTAINER_COLOR, CONTAINER_HEIGHT, CONTAINER_THICKNESS,
+        CONTAINER_WIDTH, GAME_OVER_HEIGHT, GAME_OVER_HINT_COLOR, KNOWN_TYPES, NEXT_BG_COLOR,
+        NEXT_PREVIEW_LABEL_SIZE, NEXT_PREVIEW_OFFSET, PREVIEW_HINT_COLOR, SCORE_TEXT_COLOR,
+        SCREEN_HEIGHT, SCREEN_WIDTH, SPAWN_HEIGHT, SPAWN_OFFSET, TEXT_COLOR, TRANSPARENT,
     },
     resources::{GameAlreadySetUp, NextGenerator, ScoreTracker},
     AppState,
@@ -47,6 +47,16 @@ fn setup_container(mut commands: Commands, game_already_set_up: Res<GameAlreadyS
     if game_already_set_up.is_set_up {
         return;
     }
+
+    commands.spawn(SpriteBundle {
+        sprite: Sprite {
+            custom_size: Some(Vec2::new(CONTAINER_WIDTH, 3.0)),
+            color: GAME_OVER_HINT_COLOR,
+            ..default()
+        },
+        transform: Transform::from_xyz(0.0, GAME_OVER_HEIGHT + 10.0, 0.0),
+        ..default()
+    });
 
     let container_base = -SCREEN_HEIGHT / 2.0 + CONTAINER_BASE_OFFSET;
     /* Create the container. */
@@ -171,10 +181,10 @@ fn setup_score(
     }
 
     commands
-        .spawn((SpriteBundle {
+        .spawn(SpriteBundle {
             sprite: Sprite {
                 custom_size: Some(Vec2::new(100.0, 50.0)),
-                color: BG_COLOR,
+                color: TRANSPARENT,
                 ..default()
             },
             transform: Transform::from_xyz(
@@ -183,7 +193,7 @@ fn setup_score(
                 0.0,
             ),
             ..default()
-        },))
+        })
         .with_children(|builder| {
             builder.spawn((
                 Score,
@@ -267,7 +277,7 @@ fn setup_preview(
             SpriteBundle {
                 sprite: Sprite {
                     custom_size: Some(Vec2::new(10.0, 10.0)),
-                    color: NEXT_BG_COLOR,
+                    color: TRANSPARENT,
                     ..default()
                 },
                 transform: Transform::from_xyz(
