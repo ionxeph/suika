@@ -42,7 +42,10 @@ pub struct MassAltered;
 
 #[allow(clippy::type_complexity)]
 pub fn manipulate_mass(
-    mut alive_fruits: Query<(&Velocity, &mut AdditionalMassProperties, Entity), With<Alive>>,
+    mut alive_fruits: Query<
+        (&Velocity, &mut AdditionalMassProperties, Entity),
+        (With<Alive>, Without<MassAltered>),
+    >,
     mut commands: Commands,
     mass_setting: Res<MassSetting>,
 ) {

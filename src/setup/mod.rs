@@ -4,9 +4,9 @@ use bevy_rapier2d::prelude::*;
 use crate::{
     constants::{
         CONTAINER_BASE_OFFSET, CONTAINER_COLOR, CONTAINER_HEIGHT, CONTAINER_THICKNESS,
-        CONTAINER_WIDTH, KNOWN_TYPES, NEXT_BG_COLOR, NEXT_PREVIEW_LABEL_SIZE, NEXT_PREVIEW_OFFSET,
-        PREVIEW_HINT_COLOR, SCORE_TEXT_COLOR, SCREEN_HEIGHT, SCREEN_WIDTH, SPAWN_HEIGHT,
-        SPAWN_OFFSET, TEXT_COLOR, TRANSPARENT,
+        CONTAINER_WIDTH, GAME_OVER_HEIGHT, GAME_OVER_HINT_COLOR, KNOWN_TYPES, NEXT_BG_COLOR,
+        NEXT_PREVIEW_LABEL_SIZE, NEXT_PREVIEW_OFFSET, PREVIEW_HINT_COLOR, SCORE_TEXT_COLOR,
+        SCREEN_HEIGHT, SCREEN_WIDTH, SPAWN_HEIGHT, SPAWN_OFFSET, TEXT_COLOR, TRANSPARENT,
     },
     resources::{GameAlreadySetUp, NextGenerator, ScoreTracker},
     AppState,
@@ -48,7 +48,16 @@ fn setup_container(mut commands: Commands, game_already_set_up: Res<GameAlreadyS
         return;
     }
 
-    // TODO: add a thin line at the top indicating game over point
+    commands.spawn(SpriteBundle {
+        sprite: Sprite {
+            custom_size: Some(Vec2::new(CONTAINER_WIDTH, 3.0)),
+            color: GAME_OVER_HINT_COLOR,
+            ..default()
+        },
+        transform: Transform::from_xyz(0.0, GAME_OVER_HEIGHT + 10.0, 0.0),
+        ..default()
+    });
+
     let container_base = -SCREEN_HEIGHT / 2.0 + CONTAINER_BASE_OFFSET;
     /* Create the container. */
     commands.spawn((

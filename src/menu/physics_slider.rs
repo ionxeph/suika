@@ -141,8 +141,6 @@ pub fn handle_slider_change(
 ) {
     let yagoo_max: f32 = SLIDER_CONTAINER_WIDTH / 2.0 - YAGOO_SIZE / 2.0;
     let yagoo_min: f32 = -SLIDER_CONTAINER_WIDTH / 2.0 + YAGOO_SIZE / 2.0;
-
-    // TODO: implement drag, and add a resource to tie the slider value to mass
     let mouse_pos = get_mouse_pos(q_windows, camera_q);
 
     if mouse_button_input.pressed(MouseButton::Left) {

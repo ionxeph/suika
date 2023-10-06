@@ -11,6 +11,7 @@ use crate::helpers::get_mouse_pos;
 mod physics_slider;
 use physics_slider::{handle_slider_change, setup};
 
+// TODO: add a restart button
 pub struct MenuPlugin;
 
 impl Plugin for MenuPlugin {
@@ -32,7 +33,6 @@ impl Plugin for MenuPlugin {
     }
 }
 
-// TODO: add a slider to adjust physics
 #[derive(Component)]
 pub struct MenuItem;
 

@@ -1,7 +1,4 @@
-use std::time::Duration;
-
 use bevy::prelude::*;
-use bevy::time::common_conditions::on_fixed_timer;
 use bevy_rapier2d::prelude::*;
 
 use crate::{AppState, Fruit};
@@ -36,19 +33,14 @@ impl Plugin for GamePlugin {
                 mouse_click,
                 update_preview,
                 collision,
-                merge_fruits,
                 clamp_upward_velocity,
-                mark_fruits_as_alive,
-                manipulate_mass,
-                change_manipulated_mass_on_slide,
                 check_game_over,
+                mark_fruits_as_alive.before(merge_fruits),
+                manipulate_mass.before(merge_fruits),
+                change_manipulated_mass_on_slide.before(merge_fruits),
+                merge_fruits.after(collision),
+                remove_used_fruits.after(merge_fruits),
             )
-                .run_if(in_state(AppState::InGame)),
-        )
-        .add_systems(
-            Update,
-            remove_used_fruits
-                .run_if(on_fixed_timer(Duration::from_secs(2)))
                 .run_if(in_state(AppState::InGame)),
         );
     }
