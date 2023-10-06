@@ -24,6 +24,7 @@ mod physics_manipulations;
 use physics_manipulations::{clamp_upward_velocity, manipulate_mass, mark_fruits_as_alive};
 
 use self::collision::merge_fruits;
+use self::physics_manipulations::change_manipulated_mass_on_slide;
 
 pub struct GamePlugin;
 
@@ -39,6 +40,7 @@ impl Plugin for GamePlugin {
                 clamp_upward_velocity,
                 mark_fruits_as_alive,
                 manipulate_mass,
+                change_manipulated_mass_on_slide,
                 check_game_over,
             )
                 .run_if(in_state(AppState::InGame)),

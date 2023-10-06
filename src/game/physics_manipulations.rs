@@ -2,7 +2,8 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
 use crate::{
-    constants::{ALIVE_MASS, MAX_SPEED, MAX_X_VELOCITY_BEFORE_CLAMP, MAX_Y_VELOCITY_BEFORE_CLAMP},
+    constants::{MAX_SPEED, MAX_X_VELOCITY_BEFORE_CLAMP, MAX_Y_VELOCITY_BEFORE_CLAMP},
+    resources::MassSetting,
     Fruit,
 };
 
@@ -36,13 +37,30 @@ pub fn mark_fruits_as_alive(
     }
 }
 
+#[derive(Component)]
+pub struct MassAltered;
+
 #[allow(clippy::type_complexity)]
 pub fn manipulate_mass(
-    mut alive_fruits: Query<(&Velocity, &mut AdditionalMassProperties), With<Alive>>,
+    mut alive_fruits: Query<(&Velocity, &mut AdditionalMassProperties, Entity), With<Alive>>,
+    mut commands: Commands,
+    mass_setting: Res<MassSetting>,
 ) {
-    for (vel, mut mprops) in alive_fruits.iter_mut() {
+    for (vel, mut mprops, entity) in alive_fruits.iter_mut() {
         if vel.linvel.abs().y < 1.0 && vel.linvel.abs().x < 1.0 {
-            *mprops = AdditionalMassProperties::Mass(ALIVE_MASS);
+            *mprops = AdditionalMassProperties::Mass(mass_setting.get_mass());
+            commands.entity(entity).insert(MassAltered);
+        }
+    }
+}
+
+pub fn change_manipulated_mass_on_slide(
+    mut altered_masses: Query<&mut AdditionalMassProperties, With<MassAltered>>,
+    mass_setting: Res<MassSetting>,
+) {
+    if mass_setting.is_changed() {
+        for mut mprops in altered_masses.iter_mut() {
+            *mprops = AdditionalMassProperties::Mass(mass_setting.get_mass());
         }
     }
 }

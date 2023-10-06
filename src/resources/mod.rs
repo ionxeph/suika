@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use rand::prelude::*;
 
 use crate::{
-    constants::{CLICK_DELAY, KNOWN_TYPES},
+    constants::{ALIVE_MASS_MIN, CLICK_DELAY, KNOWN_TYPES, MASS},
     Fruit,
 };
 
@@ -45,6 +45,23 @@ impl ScoreTracker {
 
     pub fn reset(&mut self) {
         self.score = 0;
+    }
+}
+
+#[derive(Resource)]
+pub struct MassSetting {
+    pub percentage: f32,
+}
+
+impl Default for MassSetting {
+    fn default() -> Self {
+        Self { percentage: 0.5 }
+    }
+}
+
+impl MassSetting {
+    pub fn get_mass(&self) -> f32 {
+        (MASS - ALIVE_MASS_MIN) * self.percentage + ALIVE_MASS_MIN
     }
 }
 

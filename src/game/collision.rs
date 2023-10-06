@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::constants::ALIVE_MASS;
+use crate::resources::MassSetting;
 use crate::setup::Score;
 use crate::{resources::ScoreTracker, Fruit};
 
@@ -60,6 +60,7 @@ pub fn merge_fruits(
     asset_server: Res<AssetServer>,
     mut score_tracker: ResMut<ScoreTracker>,
     mut score_query: Query<&mut Text, With<Score>>,
+    mass_setting: Res<MassSetting>,
 ) {
     struct ShouldMerge {
         entities: (Entity, Entity),
@@ -120,7 +121,7 @@ pub fn merge_fruits(
                         new_y,
                         fruit.clone(),
                     ))
-                    .insert(AdditionalMassProperties::Mass(ALIVE_MASS));
+                    .insert(AdditionalMassProperties::Mass(mass_setting.get_mass()));
             }
             None => (),
         }

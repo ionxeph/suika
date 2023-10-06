@@ -1,28 +1,33 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, window::PrimaryWindow};
+
+use crate::helpers::{get_mouse_pos, mouse_pos_in_slider};
+use crate::resources::MassSetting;
+use crate::setup::MainCamera;
 
 use crate::constants::{
-    NEXT_BG_COLOR, PREVIEW_HINT_COLOR, SCREEN_HEIGHT, SCREEN_WIDTH, TEXT_COLOR, TRANSPARENT,
+    NEXT_BG_COLOR, PREVIEW_HINT_COLOR, SLIDER_CONTAINER_HEIGHT, SLIDER_CONTAINER_SIDES,
+    SLIDER_CONTAINER_WIDTH, SLIDER_POS_X, SLIDER_POS_Y, SLIDER_WIDTH, TEXT_COLOR, TRANSPARENT,
+    YAGOO_SIZE,
 };
 
-pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let pos_x = SCREEN_WIDTH / 2.0 - 150.0;
-    let pox_y = -SCREEN_HEIGHT / 2.0 + 100.0;
-    let width = 250.0;
+#[derive(Component)]
+pub struct Yagoo;
 
+pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .spawn(SpriteBundle {
             sprite: Sprite {
-                custom_size: Some(Vec2::new(width, 80.0)),
+                custom_size: Some(Vec2::new(SLIDER_CONTAINER_WIDTH, SLIDER_CONTAINER_HEIGHT)),
                 color: NEXT_BG_COLOR,
                 ..default()
             },
-            transform: Transform::from_xyz(pos_x, pox_y, 0.0),
+            transform: Transform::from_xyz(SLIDER_POS_X, SLIDER_POS_Y, 0.0),
             ..default()
         })
         .with_children(|builder| {
             builder.spawn(SpriteBundle {
                 sprite: Sprite {
-                    custom_size: Some(Vec2::new(width - 25.0, 5.0)),
+                    custom_size: Some(Vec2::new(SLIDER_WIDTH, 5.0)),
                     color: PREVIEW_HINT_COLOR,
                     ..default()
                 },
@@ -30,25 +35,32 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 ..default()
             });
 
-            builder.spawn(SpriteBundle {
-                sprite: Sprite {
-                    custom_size: Some(Vec2::new(1.0, 1.0) * 50.0),
+            builder.spawn((
+                Yagoo,
+                SpriteBundle {
+                    sprite: Sprite {
+                        custom_size: Some(Vec2::new(1.0, 1.0) * 50.0),
+                        ..default()
+                    },
+                    texture: asset_server.load("yagoo.png"),
+                    transform: Transform::from_xyz(0.0, 0.0, 2.0),
                     ..default()
                 },
-                texture: asset_server.load("yagoo.png"),
-                transform: Transform::from_xyz(0.0, 0.0, 2.0),
-                ..default()
-            });
+            ));
         });
 
     commands
         .spawn(SpriteBundle {
             sprite: Sprite {
-                custom_size: Some(Vec2::new(width, 80.0)),
+                custom_size: Some(Vec2::new(SLIDER_CONTAINER_WIDTH, SLIDER_CONTAINER_HEIGHT)),
                 color: TRANSPARENT,
                 ..default()
             },
-            transform: Transform::from_xyz(pos_x, pox_y + 80.0, 0.0),
+            transform: Transform::from_xyz(
+                SLIDER_POS_X,
+                SLIDER_POS_Y + SLIDER_CONTAINER_HEIGHT,
+                0.0,
+            ),
             ..default()
         })
         .with_children(|builder| {
@@ -70,11 +82,11 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .spawn(SpriteBundle {
             sprite: Sprite {
-                custom_size: Some(Vec2::new(width, 80.0)),
+                custom_size: Some(Vec2::new(SLIDER_CONTAINER_WIDTH, SLIDER_CONTAINER_HEIGHT)),
                 color: TRANSPARENT,
                 ..default()
             },
-            transform: Transform::from_xyz(pos_x - 75.0, pox_y + 45.0, 0.0),
+            transform: Transform::from_xyz(SLIDER_POS_X - 75.0, SLIDER_POS_Y + 45.0, 0.0),
             ..default()
         })
         .with_children(|builder| {
@@ -96,11 +108,11 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .spawn(SpriteBundle {
             sprite: Sprite {
-                custom_size: Some(Vec2::new(width, 80.0)),
+                custom_size: Some(Vec2::new(SLIDER_CONTAINER_WIDTH, SLIDER_CONTAINER_HEIGHT)),
                 color: TRANSPARENT,
                 ..default()
             },
-            transform: Transform::from_xyz(pos_x + 75.0, pox_y + 45.0, 0.0),
+            transform: Transform::from_xyz(SLIDER_POS_X + 75.0, SLIDER_POS_Y + 45.0, 0.0),
             ..default()
         })
         .with_children(|builder| {
@@ -120,9 +132,36 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         });
 }
 
-pub fn handle_slider_change() {
-    let yagoo_max: f32 = 250.0 / 2.0 - 25.0;
-    let yagoo_min: f32 = -250.0 / 2.0 + 25.0;
+pub fn handle_slider_change(
+    mouse_button_input: Res<Input<MouseButton>>,
+    q_windows: Query<&Window, With<PrimaryWindow>>,
+    camera_q: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
+    mut yagoo: Query<&mut Transform, With<Yagoo>>,
+    mut mass_setting: ResMut<MassSetting>,
+) {
+    let yagoo_max: f32 = SLIDER_CONTAINER_WIDTH / 2.0 - YAGOO_SIZE / 2.0;
+    let yagoo_min: f32 = -SLIDER_CONTAINER_WIDTH / 2.0 + YAGOO_SIZE / 2.0;
 
     // TODO: implement drag, and add a resource to tie the slider value to mass
+    let mouse_pos = get_mouse_pos(q_windows, camera_q);
+
+    if mouse_button_input.pressed(MouseButton::Left) {
+        if let Some(world_position) = mouse_pos {
+            if mouse_pos_in_slider(world_position) {
+                let offset = (SLIDER_CONTAINER_WIDTH - SLIDER_WIDTH) / 2.0;
+                let max_x = SLIDER_CONTAINER_SIDES.1 - offset;
+                let min_x = SLIDER_CONTAINER_SIDES.3 + offset;
+                let slider_center = (SLIDER_CONTAINER_SIDES.1 - SLIDER_CONTAINER_SIDES.3) / 2.0;
+                let mouse_x = match world_position.x {
+                    x if x < slider_center => x.max(min_x),
+                    x if x > slider_center => x.min(max_x),
+                    _ => world_position.x,
+                };
+                let percentage = (mouse_x - min_x) / (max_x - min_x);
+                let mut yagoo_transform = yagoo.single_mut();
+                yagoo_transform.translation.x = (yagoo_max - yagoo_min) * percentage + yagoo_min;
+                mass_setting.percentage = 1.0 - percentage;
+            }
+        }
+    }
 }
