@@ -30,6 +30,19 @@ pub const SLIDER_CONTAINER_SIDES: (f32, f32, f32, f32) = (
     SLIDER_POS_X - SLIDER_CONTAINER_WIDTH / 2.0,
 ); // (top, right, bottom, left) or clockwise starting from top
 
+pub const NOISE_TOGGLE_POS_X_OFFSET: f32 = 150.0;
+pub const NOISE_TOGGLE_POS_Y_OFFSET: f32 = 300.0;
+pub const NOISE_TOGGLE_POS_X: f32 = SCREEN_WIDTH / 2.0 - NOISE_TOGGLE_POS_X_OFFSET;
+pub const NOISE_TOGGLE_POS_Y: f32 = -SCREEN_HEIGHT / 2.0 + NOISE_TOGGLE_POS_Y_OFFSET;
+pub const NOISE_TOGGLE_WIDTH: f32 = 250.0;
+pub const NOISE_TOGGLE_HEIGHT: f32 = 80.0;
+pub const NOISE_TOGGLE_SIDES: (f32, f32, f32, f32) = (
+    NOISE_TOGGLE_POS_Y + NOISE_TOGGLE_HEIGHT / 2.0,
+    NOISE_TOGGLE_POS_X + NOISE_TOGGLE_WIDTH / 2.0,
+    NOISE_TOGGLE_POS_Y - NOISE_TOGGLE_HEIGHT / 2.0,
+    NOISE_TOGGLE_POS_X - NOISE_TOGGLE_WIDTH / 2.0,
+); // (top, right, bottom, left) or clockwise starting from top
+
 pub const GRAVITY: f32 = 3.5;
 pub const RESTITUATION: f32 = 0.00000001;
 pub const MASS: f32 = 5.0;
@@ -49,15 +62,15 @@ pub const TRANSPARENT: Color = Color::rgba(0.0, 0.0, 0.0, 0.0);
 
 pub const CLICK_DELAY: f32 = 0.8;
 pub const KNOWN_TYPES: [(f32, &str, u32); 11] = [
-    (31.2, "gura.png", 0),
-    (48.0, "aqua.png", 1),
-    (64.8, "hakos.png", 3),
-    (72.0, "towa.png", 6),
-    (92.4, "kobo.png", 10),
-    (110.4, "ayame.png", 15),
-    (116.4, "koyori.png", 21),
-    (154.8, "fubuki.png", 28),
-    (184.8, "mio.png", 36),
-    (208.8, "ollie.png", 45),
-    (244.8, "sana.png", 55),
+    (31.2, "gura", 0),
+    (48.0, "aqua", 1),
+    (64.8, "hakos", 3),
+    (72.0, "towa", 6),
+    (92.4, "kobo", 10),
+    (110.4, "ayame", 15),
+    (116.4, "koyori", 21),
+    (154.8, "fubuki", 28),
+    (184.8, "mio", 36),
+    (208.8, "ollie", 45),
+    (244.8, "sana", 55),
 ];

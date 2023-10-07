@@ -66,6 +66,23 @@ impl MassSetting {
 }
 
 #[derive(Resource)]
+pub struct NoiseSetting {
+    pub is_on: bool,
+}
+
+impl Default for NoiseSetting {
+    fn default() -> Self {
+        Self { is_on: true }
+    }
+}
+
+impl NoiseSetting {
+    pub fn toggle(&mut self) {
+        self.is_on = !self.is_on;
+    }
+}
+
+#[derive(Resource)]
 pub struct NextGenerator {
     pub current_fruit: Fruit,
     pub next_fruit: Fruit,
@@ -76,17 +93,17 @@ impl Default for NextGenerator {
     fn default() -> Self {
         let mut rng = rand::thread_rng();
         let (cur, next) = (rng.gen_range(0..5), rng.gen_range(0..5));
-        let (cur_size, image_file_name, cur_score) = KNOWN_TYPES[cur];
-        let (next_size, next_image_file_name, next_score) = KNOWN_TYPES[next];
+        let (cur_size, file_name, cur_score) = KNOWN_TYPES[cur];
+        let (next_size, next_file_name, next_score) = KNOWN_TYPES[next];
         Self {
             current_fruit: Fruit {
                 size: cur_size,
-                image_file_name: String::from(image_file_name),
+                file_name: String::from(file_name),
                 score: cur_score,
             },
             next_fruit: Fruit {
                 size: next_size,
-                image_file_name: String::from(next_image_file_name),
+                file_name: String::from(next_file_name),
                 score: next_score,
             },
             should_update_previews: false,
@@ -99,10 +116,10 @@ impl NextGenerator {
         let mut rng = rand::thread_rng();
         let next = rng.gen_range(0..5);
         self.current_fruit = self.next_fruit.clone();
-        let (size, image_file_name, score) = KNOWN_TYPES[next];
+        let (size, file_name, score) = KNOWN_TYPES[next];
         self.next_fruit = Fruit {
             size,
-            image_file_name: String::from(image_file_name),
+            file_name: String::from(file_name),
             score,
         };
         self.should_update_previews = true;

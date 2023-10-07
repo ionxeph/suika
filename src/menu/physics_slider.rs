@@ -1,7 +1,7 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
 use crate::helpers::{get_mouse_pos, mouse_pos_in_slider};
-use crate::resources::MassSetting;
+use crate::resources::{GameAlreadySetUp, MassSetting};
 use crate::setup::MainCamera;
 
 use crate::constants::{
@@ -13,7 +13,14 @@ use crate::constants::{
 #[derive(Component)]
 pub struct Yagoo;
 
-pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn setup_slider(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    game_already_set_up: Res<GameAlreadySetUp>,
+) {
+    if game_already_set_up.is_set_up {
+        return;
+    }
     commands
         .spawn(SpriteBundle {
             sprite: Sprite {

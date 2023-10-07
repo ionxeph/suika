@@ -1,7 +1,8 @@
+use bevy::audio::Volume;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::resources::MassSetting;
+use crate::resources::{MassSetting, NoiseSetting};
 use crate::setup::Score;
 use crate::{resources::ScoreTracker, Fruit};
 
@@ -61,6 +62,7 @@ pub fn merge_fruits(
     mut score_tracker: ResMut<ScoreTracker>,
     mut score_query: Query<&mut Text, With<Score>>,
     mass_setting: Res<MassSetting>,
+    noise_setting: Res<NoiseSetting>,
 ) {
     struct ShouldMerge {
         entities: (Entity, Entity),
@@ -110,18 +112,24 @@ pub fn merge_fruits(
         // in this case, both are despawned, and no new fruits created
         match &should_merge.merge_result {
             Some(fruit) => {
-                let texture_handle = asset_server.load(&fruit.image_file_name);
+                let texture_handle = asset_server.load(format!("{}.png", &fruit.file_name));
                 score_tracker.add_score(fruit.score);
                 let mut score = score_query.single_mut();
                 score.sections[0].value = score_tracker.score.to_string();
-                commands
-                    .spawn(create_fruit_bundle(
-                        texture_handle,
-                        new_x,
-                        new_y,
-                        fruit.clone(),
-                    ))
-                    .insert(AdditionalMassProperties::Mass(mass_setting.get_mass()));
+                let mut spawned_fruit = commands.spawn((
+                    create_fruit_bundle(texture_handle, new_x, new_y, fruit.clone()),
+                    AdditionalMassProperties::Mass(mass_setting.get_mass()),
+                ));
+
+                if noise_setting.is_on {
+                    spawned_fruit.insert(AudioBundle {
+                        source: asset_server.load(format!("audio/{}.ogg", &fruit.file_name)),
+                        settings: PlaybackSettings {
+                            volume: Volume::new_absolute(0.5),
+                            ..default()
+                        },
+                    });
+                }
             }
             None => (),
         }

@@ -11,7 +11,9 @@ mod game;
 use game::GamePlugin;
 
 mod resources;
-use resources::{GameAlreadySetUp, MassSetting, NextGenerator, ScoreTracker, SpawnTime};
+use resources::{
+    GameAlreadySetUp, MassSetting, NextGenerator, NoiseSetting, ScoreTracker, SpawnTime,
+};
 
 mod constants;
 use constants::{BG_COLOR, KNOWN_TYPES, SCREEN_HEIGHT, SCREEN_WIDTH};
@@ -41,6 +43,7 @@ fn main() {
         .init_resource::<GameAlreadySetUp>()
         .init_resource::<ScoreTracker>()
         .init_resource::<MassSetting>()
+        .init_resource::<NoiseSetting>()
         .add_plugins(SetupPlugin)
         .add_plugins(MenuPlugin)
         .add_plugins(GamePlugin)
@@ -58,7 +61,7 @@ pub enum AppState {
 #[derive(Component)]
 pub struct Fruit {
     pub size: f32,
-    pub image_file_name: String,
+    pub file_name: String,
     pub score: u32,
 }
 
@@ -67,11 +70,11 @@ impl Fruit {
         if self.size == KNOWN_TYPES[10].0 {
             return None;
         }
-        let (size, image_file_name, score) =
+        let (size, file_name, score) =
             KNOWN_TYPES[KNOWN_TYPES.iter().position(|s| s.0 == self.size).unwrap() + 1];
         Some(Fruit {
             size,
-            image_file_name: String::from(image_file_name),
+            file_name: String::from(file_name),
             score,
         })
     }
@@ -81,7 +84,7 @@ impl Clone for Fruit {
     fn clone(&self) -> Fruit {
         Fruit {
             size: self.size,
-            image_file_name: self.image_file_name.clone(),
+            file_name: self.file_name.clone(),
             score: self.score,
         }
     }
