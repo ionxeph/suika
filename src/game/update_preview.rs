@@ -24,13 +24,15 @@ pub fn update_preview(
         // if preview images and sizes need to be updated
         if next_generator.should_update_previews {
             sprite.custom_size = Some(Vec2::new(1.0, 1.0) * next_generator.current_fruit.size);
-            let texture_handle = asset_server.load(&next_generator.current_fruit.image_file_name);
+            let texture_handle =
+                asset_server.load(format!("{}.png", &next_generator.current_fruit.file_name));
             *handle = texture_handle;
 
             // update next preview
             let (_, mut next_sprite, mut next_handle) = next_preview.single_mut();
             next_sprite.custom_size = Some(Vec2::new(1.0, 1.0) * next_generator.next_fruit.size);
-            let next_texture_handle = asset_server.load(&next_generator.next_fruit.image_file_name);
+            let next_texture_handle =
+                asset_server.load(format!("{}.png", &next_generator.next_fruit.file_name));
             *next_handle = next_texture_handle;
             next_generator.preview_updated();
         }

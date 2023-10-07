@@ -12,14 +12,21 @@ use crate::{
     AppState,
 };
 
+mod bg_music;
+use bg_music::{on_music_setting_change, setup_music, start_music};
+
 pub struct SetupPlugin;
 
 impl Plugin for SetupPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, (setup_camera, setup_app_boundaries))
+        app.add_systems(Startup, (setup_camera, setup_app_boundaries, setup_music))
             .add_systems(
                 OnEnter(AppState::InGame),
-                (setup_container, setup_merge_guide, setup_score),
+                (setup_container, setup_merge_guide, setup_score, start_music),
+            )
+            .add_systems(
+                Update,
+                on_music_setting_change.run_if(in_state(AppState::InGame)),
             )
             // unlike the other setups, previews are thrown out in GameOver state, and recreated after starting over
             .add_systems(OnEnter(AppState::InGame), setup_preview)
@@ -154,7 +161,7 @@ fn setup_merge_guide(
     let mut offset: f32 = 0.0;
     for (size, file_name, _) in KNOWN_TYPES.into_iter() {
         print!("{}, ", size * 1.2);
-        let texture_handle = asset_server.load(file_name);
+        let texture_handle = asset_server.load(format!("{}.png", file_name));
         let pos_x = -SCREEN_WIDTH / 2.0 + 60.0;
         let pos_y = (-SCREEN_HEIGHT / 2.0 + CONTAINER_BASE_OFFSET) + offset;
         let normalized_size = normalize_size(size);
@@ -219,8 +226,8 @@ fn setup_preview(
     asset_server: Res<AssetServer>,
     next_generator: Res<NextGenerator>,
 ) {
-    let file_name = &next_generator.current_fruit.image_file_name;
-    let texture_handle = asset_server.load(file_name);
+    let file_name = &next_generator.current_fruit.file_name;
+    let texture_handle = asset_server.load(format!("{}.png", file_name));
     commands
         .spawn((
             Preview,
@@ -251,8 +258,8 @@ fn setup_preview(
             ));
         });
 
-    let file_name = &next_generator.next_fruit.image_file_name;
-    let texture_handle = asset_server.load(file_name);
+    let file_name = &next_generator.next_fruit.file_name;
+    let texture_handle = asset_server.load(format!("{}.png", file_name));
     commands.spawn((
         NextPreview,
         PreviewPart,

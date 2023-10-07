@@ -9,7 +9,13 @@ use crate::{AppState, Fruit};
 use crate::helpers::get_mouse_pos;
 
 mod physics_slider;
-use physics_slider::{handle_slider_change, setup};
+use physics_slider::{handle_slider_change, setup_slider};
+
+mod noise_toggle;
+use noise_toggle::{handle_noise_toggle, setup_noise_toggle};
+
+mod restart;
+use restart::{handle_restart, setup_restart};
 
 // TODO: add a restart button
 pub struct MenuPlugin;
@@ -21,10 +27,14 @@ impl Plugin for MenuPlugin {
             .add_systems(OnExit(AppState::StartMenu), cleanup_menu)
             .add_systems(OnEnter(AppState::GameOverMenu), setup_game_over)
             .add_systems(Update, menu_system.run_if(in_state(AppState::GameOverMenu)))
-            .add_systems(OnEnter(AppState::InGame), setup)
+            .add_systems(
+                OnEnter(AppState::InGame),
+                (setup_slider, setup_noise_toggle, setup_restart),
+            )
             .add_systems(
                 Update,
-                handle_slider_change.run_if(in_state(AppState::InGame)),
+                (handle_slider_change, handle_noise_toggle, handle_restart)
+                    .run_if(in_state(AppState::InGame)),
             )
             .add_systems(
                 OnExit(AppState::GameOverMenu),
