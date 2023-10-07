@@ -13,8 +13,9 @@ use crate::{
 };
 
 mod bg_music;
-use bg_music::{on_music_setting_change, setup_music, start_music};
+use bg_music::{on_music_setting_change, setup_music};
 
+// TODO: refactor this is_game_set_up nonsense by actually putting those setups into Startup schedule
 pub struct SetupPlugin;
 
 impl Plugin for SetupPlugin {
@@ -22,7 +23,7 @@ impl Plugin for SetupPlugin {
         app.add_systems(Startup, (setup_camera, setup_app_boundaries, setup_music))
             .add_systems(
                 OnEnter(AppState::InGame),
-                (setup_container, setup_merge_guide, setup_score, start_music),
+                (setup_container, setup_merge_guide, setup_score),
             )
             .add_systems(
                 Update,

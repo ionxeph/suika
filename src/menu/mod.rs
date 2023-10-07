@@ -17,7 +17,6 @@ use noise_toggle::{handle_noise_toggle, setup_noise_toggle};
 mod restart;
 use restart::{handle_restart, setup_restart};
 
-// TODO: add a restart button
 pub struct MenuPlugin;
 
 impl Plugin for MenuPlugin {
