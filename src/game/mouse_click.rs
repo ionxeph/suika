@@ -3,7 +3,9 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_rapier2d::prelude::AdditionalMassProperties;
 use rand::prelude::*;
 
-use crate::helpers::{get_mouse_pos, mouse_pos_in_noise_toggle, mouse_pos_in_slider};
+use crate::helpers::{
+    get_mouse_pos, mouse_pos_in_noise_toggle, mouse_pos_in_restart, mouse_pos_in_slider,
+};
 use crate::resources::{NextGenerator, NoiseSetting, SpawnTime};
 use crate::setup::MainCamera;
 
@@ -31,7 +33,10 @@ pub fn mouse_click(
 
     if mouse_button_input.just_pressed(MouseButton::Left) {
         if let Some(world_position) = mouse_pos {
-            if !mouse_pos_in_slider(world_position) && !mouse_pos_in_noise_toggle(world_position) {
+            if !mouse_pos_in_slider(world_position)
+                && !mouse_pos_in_noise_toggle(world_position)
+                && !mouse_pos_in_restart(world_position)
+            {
                 click_buffer.start_new_timer();
                 let next_fruit = next_generator.current_fruit.clone();
                 let file_name = &next_fruit.file_name;

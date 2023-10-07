@@ -1,7 +1,7 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
 use crate::{
-    constants::{NOISE_TOGGLE_SIDES, SLIDER_CONTAINER_SIDES},
+    constants::{NOISE_TOGGLE_SIDES, RESTART_SIDES, SLIDER_CONTAINER_SIDES},
     setup::MainCamera,
 };
 
@@ -35,4 +35,10 @@ pub fn mouse_pos_in_noise_toggle(mouse_pos: Vec2) -> bool {
         && x <= NOISE_TOGGLE_SIDES.1
         && y >= NOISE_TOGGLE_SIDES.2
         && x >= NOISE_TOGGLE_SIDES.3
+}
+
+pub fn mouse_pos_in_restart(mouse_pos: Vec2) -> bool {
+    let x = mouse_pos.x;
+    let y = mouse_pos.y;
+    y <= RESTART_SIDES.0 && x <= RESTART_SIDES.1 && y >= RESTART_SIDES.2 && x >= RESTART_SIDES.3
 }

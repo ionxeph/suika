@@ -31,7 +31,7 @@ pub const SLIDER_CONTAINER_SIDES: (f32, f32, f32, f32) = (
 ); // (top, right, bottom, left) or clockwise starting from top
 
 pub const NOISE_TOGGLE_POS_X_OFFSET: f32 = 150.0;
-pub const NOISE_TOGGLE_POS_Y_OFFSET: f32 = 300.0;
+pub const NOISE_TOGGLE_POS_Y_OFFSET: f32 = 250.0;
 pub const NOISE_TOGGLE_POS_X: f32 = SCREEN_WIDTH / 2.0 - NOISE_TOGGLE_POS_X_OFFSET;
 pub const NOISE_TOGGLE_POS_Y: f32 = -SCREEN_HEIGHT / 2.0 + NOISE_TOGGLE_POS_Y_OFFSET;
 pub const NOISE_TOGGLE_WIDTH: f32 = 250.0;
@@ -41,6 +41,19 @@ pub const NOISE_TOGGLE_SIDES: (f32, f32, f32, f32) = (
     NOISE_TOGGLE_POS_X + NOISE_TOGGLE_WIDTH / 2.0,
     NOISE_TOGGLE_POS_Y - NOISE_TOGGLE_HEIGHT / 2.0,
     NOISE_TOGGLE_POS_X - NOISE_TOGGLE_WIDTH / 2.0,
+); // (top, right, bottom, left) or clockwise starting from top
+
+pub const RESTART_POS_X_OFFSET: f32 = 150.0;
+pub const RESTART_POS_Y_OFFSET: f32 = 400.0;
+pub const RESTART_POS_X: f32 = SCREEN_WIDTH / 2.0 - RESTART_POS_X_OFFSET;
+pub const RESTART_POS_Y: f32 = -SCREEN_HEIGHT / 2.0 + RESTART_POS_Y_OFFSET;
+pub const RESTART_WIDTH: f32 = 250.0;
+pub const RESTART_HEIGHT: f32 = 80.0;
+pub const RESTART_SIDES: (f32, f32, f32, f32) = (
+    RESTART_POS_Y + RESTART_HEIGHT / 2.0,
+    RESTART_POS_X + RESTART_WIDTH / 2.0,
+    RESTART_POS_Y - RESTART_HEIGHT / 2.0,
+    RESTART_POS_X - RESTART_WIDTH / 2.0,
 ); // (top, right, bottom, left) or clockwise starting from top
 
 pub const GRAVITY: f32 = 3.5;
