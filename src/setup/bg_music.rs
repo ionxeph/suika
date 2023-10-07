@@ -3,12 +3,19 @@ use bevy::{
     prelude::*,
 };
 
-use crate::resources::NoiseSetting;
+use crate::resources::{GameAlreadySetUp, NoiseSetting};
 
 #[derive(Component)]
 pub struct BgAudio;
 
-pub fn setup_music(mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn setup_music(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    game_already_set_up: Res<GameAlreadySetUp>,
+) {
+    if game_already_set_up.is_set_up {
+        return;
+    }
     commands.spawn((
         BgAudio,
         AudioBundle {
@@ -21,12 +28,6 @@ pub fn setup_music(mut commands: Commands, asset_server: Res<AssetServer>) {
             },
         },
     ));
-}
-
-pub fn start_music(music_controller: Query<&AudioSink, With<BgAudio>>) {
-    if let Ok(sink) = music_controller.get_single() {
-        sink.play();
-    }
 }
 
 pub fn on_music_setting_change(
